@@ -1,0 +1,305 @@
+{
+  "name": "PlanejamentoAtividade",
+  "type": "object",
+  "properties": {
+    "descritivo": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da atividade quando n\u00e3o h\u00e1 anal\u00edtico vinculado"
+    },
+    "base_descritivo": {
+      "type": "string",
+      "description": "O nome original da atividade gen\u00e9rica, usado como 'DNA' para evitar duplicatas e identificar atividades r\u00e1pidas."
+    },
+    "documento_id": {
+      "type": "string",
+      "description": "ID do documento relacionado"
+    },
+    "atividade_id": {
+      "type": "string",
+      "description": "ID da atividade relacionada (herdado do Analitico)"
+    },
+    "empreendimento_id": {
+      "type": "string",
+      "description": "ID do empreendimento"
+    },
+    "etapa": {
+      "type": "string",
+      "description": "Etapa da atividade, copiada da Atividade (herdado do Analitico)"
+    },
+    "executores": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de emails dos usu\u00e1rios executores"
+    },
+    "executor_principal": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Email do executor principal/respons\u00e1vel (pode ser null se ainda n\u00e3o definido)"
+    },
+    "predecessora_id": {
+      "type": "string",
+      "description": "ID da atividade predecessora"
+    },
+    "tempo_planejado": {
+      "type": "number",
+      "description": "Tempo planejado em horas (anteriormente 'tempo_real' no Analitico)"
+    },
+    "inicio_planejado": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio planejada"
+    },
+    "termino_planejado": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de t\u00e9rmino planejada"
+    },
+    "horario_inicio": {
+      "type": "string",
+      "description": "Hor\u00e1rio de in\u00edcio da atividade (formato HH:mm)"
+    },
+    "horario_termino": {
+      "type": "string",
+      "description": "Hor\u00e1rio de t\u00e9rmino da atividade (formato HH:mm)"
+    },
+    "sobra_planejada": {
+      "type": "number",
+      "description": "Sobra de tempo planejada em horas"
+    },
+    "inicio_ajustado": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio ajustada"
+    },
+    "termino_ajustado": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de t\u00e9rmino ajustada"
+    },
+    "sobra_ajustada": {
+      "type": "number",
+      "description": "Sobra de tempo ajustada em horas"
+    },
+    "inicio_real": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio real"
+    },
+    "termino_real": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de t\u00e9rmino real"
+    },
+    "sobra_real": {
+      "type": "number",
+      "description": "Sobra de tempo real em horas"
+    },
+    "tempo_executado": {
+      "type": "number",
+      "description": "Tempo real executado em horas (anteriormente 'tempo_real_executado')"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nao_iniciado",
+        "em_andamento",
+        "concluido",
+        "atrasado",
+        "pausado"
+      ],
+      "default": "nao_iniciado",
+      "description": "Status da atividade"
+    },
+    "semana_ano": {
+      "type": "string",
+      "description": "Semana do ano no formato YYYY-WW (ex: 2024-03)"
+    },
+    "prioridade": {
+      "type": "number",
+      "default": 1,
+      "description": "Prioridade da atividade (1-5, sendo 5 a maior)"
+    },
+    "ordem": {
+      "type": "number",
+      "description": "Ordem de exibi\u00e7\u00e3o global (legado - use ordem_por_dia)"
+    },
+    "ordem_por_dia": {
+      "type": "object",
+      "description": "Ordem de exibi\u00e7\u00e3o por dia espec\u00edfico (chave: yyyy-MM-dd, valor: posi\u00e7\u00e3o 1-based). Suporta atividades que aparecem em m\u00faltiplos dias com ordem diferente em cada um.",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "horas_por_dia": {
+      "type": "object",
+      "description": "Distribui\u00e7\u00e3o de horas por data espec\u00edfica",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "horas_executadas_por_dia": {
+      "type": "object",
+      "description": "Distribui\u00e7\u00e3o de horas executadas por data",
+      "additionalProperties": {
+        "type": "number"
+      }
+    }
+  },
+  "required": [
+    "tempo_planejado"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.executor_principal": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "lider"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "coordenador"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "gestao"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "direcao"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.executor_principal": "{{user.email}}"
+        },
+        {
+          "data.executores": {
+            "$in": [
+              "{{user.email}}"
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "lider"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "coordenador"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "gestao"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "direcao"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.executor_principal": "{{user.email}}"
+        },
+        {
+          "data.executores": {
+            "$in": [
+              "{{user.email}}"
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "lider"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "coordenador"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "gestao"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "direcao"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.executor_principal": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "lider"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "coordenador"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "gestao"
+          }
+        },
+        {
+          "user_condition": {
+            "perfil": "direcao"
+          }
+        }
+      ]
+    }
+  }
+}
