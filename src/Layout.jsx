@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Building2, Settings, Home, Users, Zap, Calendar, BarChart3, Briefcase, FileText, Calculator } from "lucide-react";
+import { Building2, Settings, Home, Users, Zap, Calendar, BarChart3, Briefcase, FileText, Calculator, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { ActivityTimerProvider, ActivityTimerContext } from "@/components/contexts/ActivityTimerContext";
+import { useAuth } from "@/lib/AuthContext";
 import GlobalTimer from "@/components/layout/GlobalTimer";
 import PlaylistTrigger from "@/components/playlist/PlaylistTrigger";
 import NotificacoesOcasionais from "@/components/dashboard/NotificacoesOcasionais";
@@ -27,8 +28,18 @@ const LOGO_URL = "https://bkemxetgfezhnwgbmxbp.supabase.co/storage/v1/object/pub
 const LayoutComponent = ({ children, currentPageName }) => {
   const location = useLocation();
   const { user, isLoading, userProfile, hasPermission, isAdmin, perfilAtual, allPlanejamentos, isLoadingPlanejamentos, atividadesGenericas, allEmpreendimentos, allUsers } = useContext(ActivityTimerContext);
+  const { logout } = useAuth();
   const isDev = import.meta.env.DEV;
   const isTesting = import.meta.env.VITE_IS_TESTING === 'true';
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
   
   const getNavigationItems = (hasPermission, perfilAtual, isAdmin) => {
     const items = [
@@ -199,6 +210,13 @@ const LayoutComponent = ({ children, currentPageName }) => {
                   {getPerfilLabel(perfilAtual, isAdmin)}
                 </p>
               </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600 hover:text-red-600"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </SidebarFooter>
         </Sidebar>
