@@ -21,7 +21,7 @@ export default function ExecucoesPorUsuario() {
     const hasLoadedRef = useRef(false);
     const lastLoadedDateRef = useRef(null);
 
-    const isAdmin = user && (user.role === 'admin' || user.role === 'lider' || user.perfil === 'coordenador');
+    const isAdmin = user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider' || user.perfil === 'coordenador');
 
     // **MODIFICADO**: Criar mapa de usuários SEMPRE a partir do allUsers do contexto
     const usuariosMap = useMemo(() => {

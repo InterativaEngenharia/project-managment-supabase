@@ -67,12 +67,14 @@ export default function EmpreendimentoPage() {
   const { user } = useContext(ActivityTimerContext);
   const hasAccessToGestao = user && (
     user.role === 'admin' ||
+    user.perfil === 'admin' ||
     user.perfil === 'lider' ||
     user.perfil === 'direcao'
   );
 
   const canEdit = user && (
     user.role === 'admin' ||
+    user.perfil === 'admin' ||
     user.perfil === 'lider' ||
     user.perfil === 'coordenador' ||
     user.perfil === 'gestao' ||

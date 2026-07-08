@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Upload, Save, Plus, Trash2, GripVertical } from "lucide-react";
+import { X, Upload, Save, Plus, Trash2, GripVertical, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { UploadFile } from "@/integrations/Core";
+import { Atividade } from "@/entities/all";
 
 const ETAPAS_DEFAULT = [
   "Estudo Preliminar",
@@ -35,6 +36,28 @@ export default function EmpreendimentoForm({ empreendimento, onSubmit, onClose, 
   );
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [atividadesGenericas, setAtividadesGenericas] = useState([]);
+  const [atividadesSelecionadas, setAtividadesSelecionadas] = useState([]);
+  const [isLoadingAtividades, setIsLoadingAtividades] = useState(false);
+
+  // Carregar atividades genéricas ao abrir o formulário (apenas para novos empreendimentos)
+  useEffect(() => {
+    if (!empreendimento) {
+      loadAtividadesGenericas();
+    }
+  }, [empreendimento]);
+
+  const loadAtividadesGenericas = async () => {
+    setIsLoadingAtividades(true);
+    try {
+      const atividades = await Atividade.filter({ empreendimento_id: null }); // Apenas atividades genéricas
+      setAtividadesGenericas(atividades || []);
+    } catch (error) {
+      console.error("Erro ao carregar atividades genéricas:", error);
+    } finally {
+      setIsLoadingAtividades(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -75,6 +98,20 @@ export default function EmpreendimentoForm({ empreendimento, onSubmit, onClose, 
     setIsUploading(false);
   };
 
+  const handleToggleAtividade = (atividadeId) => {
+    setAtividadesSelecionadas(prev =>
+      prev.includes(atividadeId) ? prev.filter(id => id !== atividadeId) : [...prev, atividadeId]
+    );
+  };
+
+  const handleSelectTodasAtividades = () => {
+    if (atividadesSelecionadas.length === atividadesGenericas.length) {
+      setAtividadesSelecionadas([]);
+    } else {
+      setAtividadesSelecionadas(atividadesGenericas.map(a => a.id));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -88,7 +125,12 @@ export default function EmpreendimentoForm({ empreendimento, onSubmit, onClose, 
     setIsSubmitting(true);
     
     try {
-      await onSubmit(formData);
+      // Incluir atividades selecionadas nos dados
+      const dataToSubmit = {
+        ...formData,
+        atividades_selecionadas: atividadesSelecionadas
+      };
+      await onSubmit(dataToSubmit);
       // **CORREÇÃO**: Chamar onSuccess apenas se fornecido
       if (onSuccess && typeof onSuccess === 'function') {
         await onSuccess();
@@ -225,6 +267,57 @@ export default function EmpreendimentoForm({ empreendimento, onSubmit, onClose, 
                   Adicione quantas etapas precisar, incluindo revisões (ex: "Revisão Executivo").
                 </p>
               </div>
+
+              {/* Seleção de Atividades Genéricas */}
+              {!empreendimento && (
+                <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-gray-700">Atividades Iniciais</h3>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleSelectTodasAtividades}
+                      className="text-xs h-7"
+                      disabled={isLoadingAtividades || atividadesGenericas.length === 0}
+                    >
+                      {atividadesSelecionadas.length === atividadesGenericas.length ? 'Limpar Seleção' : 'Selecionar Todas'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Selecione as atividades genéricas que serão copiadas para este empreendimento.
+                  </p>
+                  {isLoadingAtividades ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                      <span className="ml-2 text-sm text-gray-500">Carregando atividades...</span>
+                    </div>
+                  ) : atividadesGenericas.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-4">Nenhuma atividade genérica encontrada.</p>
+                  ) : (
+                    <div className="border border-gray-200 rounded-md p-3 bg-white max-h-48 overflow-y-auto">
+                      {atividadesGenericas.map(ativ => (
+                        <div key={ativ.id} className="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0">
+                          <Checkbox
+                            id={`ativ-${ativ.id}`}
+                            checked={atividadesSelecionadas.includes(ativ.id)}
+                            onCheckedChange={() => handleToggleAtividade(ativ.id)}
+                          />
+                          <label htmlFor={`ativ-${ativ.id}`} className="text-sm cursor-pointer flex-1">
+                            <div className="font-medium">{ativ.atividade}</div>
+                            <div className="text-xs text-gray-500">
+                              {ativ.etapa} • {ativ.disciplina} • {ativ.subdisciplina}
+                            </div>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    {atividadesSelecionadas.length} atividade(s) selecionada(s)
+                  </p>
+                </div>
+              )}
 
               {/* Configuração de Checklist */}
               <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">

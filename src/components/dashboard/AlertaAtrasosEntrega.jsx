@@ -269,7 +269,7 @@ export default function AlertaAtrasosEntrega({ planejamentos, isLoading, user, i
                     </Button>
                   </Link>
                   {/* MODIFICADO: Condição ajustada para apenas admin */}
-                  {user && user.role === 'admin' && (
+                  {user && (user.role === 'admin' || user.perfil === 'admin') && (
                     <div className="w-full space-y-2 p-3 bg-white/60 border rounded-lg shadow-sm">
                       {/* Seletor de usuário para replanejamento */}
                       <div className="space-y-1">

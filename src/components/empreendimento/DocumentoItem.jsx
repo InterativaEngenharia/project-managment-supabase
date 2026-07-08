@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useMemo, useState, useContext, useEffect } from "react";
-import { Atividade, PlanejamentoAtividade, PlanejamentoDocumento, Documento } from "@/entities/all";
+import { Atividade, AtividadesEmpreendimento, PlanejamentoAtividade, PlanejamentoDocumento, Documento } from "@/entities/all";
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -325,21 +325,23 @@ export default function DocumentoItem({
     setIsUpdatingActivity(true);
     try {
       if (activityObj.empreendimento_id === empreendimento.id) {
-        await retryWithBackoff(() => Atividade.delete(activityObj.id), 3, 1000, `deleteSpecificAtividade-${activityObj.id}`);
+        // Atividade específica do empreendimento - usar AtividadesEmpreendimento
+        await retryWithBackoff(() => AtividadesEmpreendimento.delete(activityObj.id), 3, 1000, `deleteSpecificAtividade-${activityObj.id}`);
       } else {
+        // Atividade genérica - criar marcador de exclusão
         const existingMarkers = await retryWithBackoff(
-          () => Atividade.filter({ empreendimento_id: empreendimento.id, id_atividade: activityObj.id, documento_id: doc.id, tempo: -999 }),
+          () => AtividadesEmpreendimento.filter({ empreendimento_id: empreendimento.id, id_atividade: activityObj.id, documento_id: doc.id, tempo: -999 }),
           3, 1000, `checkExclusionMarker-${activityObj.id}-${doc.id}`
         );
         if (existingMarkers && existingMarkers.length > 0) { alert(`A atividade "${nomeAtividade}" já está excluída desta folha.`); return; }
-        const marcadorCriado = await retryWithBackoff(() => Atividade.create({
+        const marcadorCriado = await retryWithBackoff(() => AtividadesEmpreendimento.create({
           etapa: activityObj.etapa, disciplina: activityObj.disciplina, subdisciplina: activityObj.subdisciplina,
           atividade: `(Excluída da folha ${doc.numero}) ${String(activityObj.atividade || '')}`,
           funcao: activityObj.funcao, empreendimento_id: empreendimento.id,
           id_atividade: activityObj.id, documento_id: doc.id, tempo: -999
         }), 3, 1000, `createExclusionMarker-${activityObj.id}-${doc.id}`);
         if (!marcadorCriado.documento_id) {
-          await retryWithBackoff(() => Atividade.update(marcadorCriado.id, { documento_id: doc.id }), 3, 1000, `fixMarker-${marcadorCriado.id}`);
+          await retryWithBackoff(() => AtividadesEmpreendimento.update(marcadorCriado.id, { documento_id: doc.id }), 3, 1000, `fixMarker-${marcadorCriado.id}`);
         }
       }
       await onUpdate();
