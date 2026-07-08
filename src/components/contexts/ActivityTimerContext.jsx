@@ -59,7 +59,8 @@ export const ActivityTimerProvider = ({ children }) => {
     const { perfilAtual, nivelUsuario, isAdmin, isColaborador, isGestao, isCoordenador } = useMemo(() => {
         const perfil = (userProfile && userProfile.perfil) ? userProfile.perfil : (user && user.perfil) ? user.perfil : 'user';
         const nivel = PERFIS_HIERARQUIA[perfil] || 1;
-        const admin = user && user.role === 'admin';
+        // Verificar admin tanto pelo role do Supabase Auth quanto pelo perfil da tabela Usuario
+        const admin = (user && user.role === 'admin') || perfil === 'admin';
         return {
             perfilAtual: perfil,
             nivelUsuario: nivel,

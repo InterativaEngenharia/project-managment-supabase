@@ -61,6 +61,7 @@ export default function ComercialDetalhesPage() {
   const { user } = useContext(ActivityTimerContext);
   const hasAccessToGestao = user && (
     user.role === 'admin' ||
+    user.perfil === 'admin' ||
     user.perfil === 'lider' ||
     user.perfil === 'direcao'
   );

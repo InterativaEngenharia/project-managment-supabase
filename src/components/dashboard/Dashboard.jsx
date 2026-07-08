@@ -92,7 +92,7 @@ export default function Dashboard() {
       return;
     }
 
-    const isUserAdminOrLider = user.role === 'admin' || user.role === 'lider';
+    const isUserAdminOrLider = user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider';
 
     setIsPlanningLoading(true);
     setPlanningError(null);
@@ -325,7 +325,7 @@ export default function Dashboard() {
               )}
             </div>
             <div className="flex gap-2">
-              {user && user.role === 'admin' && (
+              {user && (user.role === 'admin' || user.perfil === 'admin') && (
                 <>
                   <Button
                     onClick={handleReagendarAtividades}
@@ -346,7 +346,7 @@ export default function Dashboard() {
                   </Button>
                 </>
               )}
-              {user && (user.role === 'admin' || user.role === 'lider') && (
+              {user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider') && (
                 <Link to={createPageUrl("Empreendimentos")}>
                   <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg">
                     <Plus className="w-4 h-4 mr-2" />
@@ -376,7 +376,7 @@ export default function Dashboard() {
               </div>
               <div className="space-y-8">
                 <AtividadeRapida />
-                {user && (user.role === 'admin' || user.role === 'lider') && <QuickActions />}
+                {user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider') && <QuickActions />}
               </div>
             </div>
           </>

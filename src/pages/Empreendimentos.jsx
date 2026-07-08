@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useContext } from "react";
-import { Empreendimento, Usuario } from "@/entities/all";
+import { Empreendimento, Usuario, Atividade } from "@/entities/all";
 import { Button } from "@/components/ui/button";
 import { Plus, Building2, AlertTriangle, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -168,10 +168,58 @@ export default function EmpreendimentosPage() {
   // CORREÇÃO: Função handleSubmit correta
   const handleSubmit = useCallback(async (empreendimentoData) => {
     try {
+      let novoEmpreendimentoId = null;
+      
       if (editingEmpreendimento) {
         await retryWithBackoff(() => Empreendimento.update(editingEmpreendimento.id, empreendimentoData), 3, 3000, 'Update Empreendimento');
       } else {
-        await retryWithBackoff(() => Empreendimento.create(empreendimentoData), 3, 3000, 'Create Empreendimento');
+        // Extrair atividades selecionadas antes de criar o empreendimento
+        const atividadesSelecionadas = empreendimentoData.atividades_selecionadas || [];
+        delete empreendimentoData.atividades_selecionadas;
+        
+        // Criar o empreendimento
+        const novoEmpreendimento = await retryWithBackoff(() => Empreendimento.create(empreendimentoData), 3, 3000, 'Create Empreendimento');
+        novoEmpreendimentoId = novoEmpreendimento.id;
+        
+        // Criar atividades selecionadas para o novo empreendimento
+        if (atividadesSelecionadas.length > 0) {
+          console.log(`📝 Criando ${atividadesSelecionadas.length} atividades para o empreendimento ${novoEmpreendimentoId}`);
+          
+          // Buscar as atividades genéricas selecionadas
+          const atividadesGenericas = await retryWithBackoff(
+            () => Atividade.filter({ empreendimento_id: null }),
+            3, 
+            2000, 
+            'LoadGenericAtividades'
+          );
+          
+          const atividadesParaCriar = atividadesGenericas.filter(a => atividadesSelecionadas.includes(a.id));
+          
+          // Criar cópias das atividades para o empreendimento
+          const criacaoPromises = atividadesParaCriar.map(ativ => 
+            retryWithBackoff(
+              () => Atividade.create({
+                id_atividade: ativ.id,
+                etapa: ativ.etapa,
+                disciplina: ativ.disciplina,
+                subdisciplina: ativ.subdisciplina,
+                atividade: ativ.atividade,
+                tempo: ativ.tempo,
+                funcao: ativ.funcao,
+                empreendimento_id: novoEmpreendimentoId,
+                documento_id: null,
+                documento_ids: [],
+                status_planejamento: 'nao_planejada'
+              }),
+              3,
+              1000,
+              `CreateActivity-${ativ.id}`
+            )
+          );
+          
+          await Promise.all(criacaoPromises);
+          console.log(`✅ ${criacaoPromises.length} atividades criadas com sucesso`);
+        }
       }
       
       setShowForm(false);

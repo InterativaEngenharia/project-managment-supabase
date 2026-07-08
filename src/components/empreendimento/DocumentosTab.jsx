@@ -492,7 +492,31 @@ export default function DocumentosTab({
     }
   }, [allAtividades, empreendimento, handleLocalUpdate, localPlanejamentos, setLocalPlanejamentos, getCargaDiariaExecutor, handleCascadingUpdate, localDocumentos]);
 
-  const handleSuccess = async () => { onUpdate(); setShowForm(false); setEditingDocumento(null); setCargaDiariaCache({}); };
+  const handleSuccess = async () => {
+    // Recarregar cache de atividades do empreendimento
+    try {
+      const atividadesEmp = await base44.entities.AtividadesEmpreendimento.filter({ empreendimento_id: empreendimento.id });
+      setAtividadesEmpCache(atividadesEmp || []);
+    } catch (error) {
+      console.error("Erro ao recarregar atividades do empreendimento:", error);
+    }
+    
+    onUpdate();
+    setShowForm(false);
+    setEditingDocumento(null);
+    setCargaDiariaCache({});
+  };
+
+  // Wrapper para onUpdate que recarrega cache de atividades
+  const handleOnUpdateWithCacheReload = async () => {
+    try {
+      const atividadesEmp = await base44.entities.AtividadesEmpreendimento.filter({ empreendimento_id: empreendimento.id });
+      setAtividadesEmpCache(atividadesEmp || []);
+    } catch (error) {
+      console.error("Erro ao recarregar atividades do empreendimento:", error);
+    }
+    await onUpdate();
+  };
 
   const handleExportData = () => {
     const rows = localDocumentos.map(doc => {
@@ -652,6 +676,15 @@ export default function DocumentosTab({
     const expandedState = { ...expandedRows };
     setShowAtividadeForm(false);
     setEditingAtividade(null);
+    
+    // Recarregar cache de atividades do empreendimento
+    try {
+      const atividadesEmp = await base44.entities.AtividadesEmpreendimento.filter({ empreendimento_id: empreendimento.id });
+      setAtividadesEmpCache(atividadesEmp || []);
+    } catch (error) {
+      console.error("Erro ao recarregar atividades do empreendimento:", error);
+    }
+    
     await onUpdate();
     setTimeout(() => setExpandedRows(expandedState), 100);
   };
@@ -840,8 +873,15 @@ export default function DocumentosTab({
   // Isso reduz drasticamente o volume de iterações em cada DocumentoItem (400+ docs × N atividades)
   const atividadesFiltradas = useMemo(() => {
     if (!localAtividades) return [];
-    return localAtividades.filter(a => !a.empreendimento_id || a.empreendimento_id === empreendimento.id);
-  }, [localAtividades, empreendimento.id]);
+    
+    // Combinar atividades genéricas com atividades específicas do empreendimento
+    const atividadesCombinadas = [
+      ...localAtividades.filter(a => !a.empreendimento_id), // Genéricas
+      ...(atividadesEmpCache || []) // Específicas do empreendimento
+    ];
+    
+    return atividadesCombinadas;
+  }, [localAtividades, atividadesEmpCache]);
 
   const sharedProps = {
     localDocumentos,
@@ -995,7 +1035,7 @@ export default function DocumentosTab({
                                 etapaParaPlanejamento={etapaParaPlanejamento}
                                 loadingDocs={loadingDocs}
                                 empreendimento={empreendimento}
-                                onUpdate={onUpdate}
+                                onUpdate={handleOnUpdateWithCacheReload}
                                 readOnly={readOnly}
                                 {...sharedProps}
                               />

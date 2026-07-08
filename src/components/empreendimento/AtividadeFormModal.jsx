@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Atividade, Documento } from '@/entities/all';
+import { AtividadesEmpreendimento, Documento } from '@/entities/all';
 import { Loader2 } from 'lucide-react';
 
 export default function AtividadeFormModal({ isOpen, onClose, empreendimentoId, disciplinas, atividade, onSuccess }) {
@@ -26,7 +26,7 @@ export default function AtividadeFormModal({ isOpen, onClose, empreendimentoId, 
     const loadData = async () => {
       try {
         const [ativs, docs] = await Promise.all([
-          Atividade.list(),
+          AtividadesEmpreendimento.list(),
           Documento.filter({ empreendimento_id: empreendimentoId })
         ]);
         setAllAtividades(ativs || []);
@@ -121,6 +121,13 @@ export default function AtividadeFormModal({ isOpen, onClose, empreendimentoId, 
   const subdisciplinasDisponiveis = useMemo(() => {
     if (!formData.disciplina) return [];
     
+    // Buscar subdisciplinas do campo codisciplinas da Disciplina
+    const disciplinaObj = disciplinas.find(d => d.nome === formData.disciplina);
+    if (disciplinaObj && disciplinaObj.codisciplinas && Array.isArray(disciplinaObj.codisciplinas)) {
+      return disciplinaObj.codisciplinas.sort();
+    }
+    
+    // Fallback: buscar de atividades genéricas (compatibilidade)
     const subdisciplinasSet = new Set();
     allAtividades.forEach(ativ => {
       if (ativ.disciplina === formData.disciplina && ativ.subdisciplina) {
@@ -129,7 +136,7 @@ export default function AtividadeFormModal({ isOpen, onClose, empreendimentoId, 
     });
     
     return Array.from(subdisciplinasSet).sort();
-  }, [formData.disciplina, allAtividades]);
+  }, [formData.disciplina, allAtividades, disciplinas]);
 
   const documentosFiltrados = useMemo(() => {
     if (!formData.disciplina) return documentos;
@@ -192,7 +199,7 @@ export default function AtividadeFormModal({ isOpen, onClose, empreendimentoId, 
           documento_ids: selectedDocumentoIds.length > 0 ? selectedDocumentoIds : [],
           documento_id: selectedDocumentoIds[0] || null, // Manter por compatibilidade
         };
-        await Atividade.update(atividade.id, dataToSave);
+        await AtividadesEmpreendimento.update(atividade.id, dataToSave);
       } else {
         // Criação - criar uma atividade por subdisciplina com múltiplas folhas
         const createPromises = [];
@@ -207,9 +214,9 @@ export default function AtividadeFormModal({ isOpen, onClose, empreendimentoId, 
             documento_id: selectedDocumentoIds[0] || null, // Compatibilidade
           };
           console.log("📝 Criando atividade com dados:", dataToSave);
-          createPromises.push(Atividade.create(dataToSave));
+          createPromises.push(AtividadesEmpreendimento.create(dataToSave));
         });
-        
+
         await Promise.all(createPromises);
       }
       onSuccess();

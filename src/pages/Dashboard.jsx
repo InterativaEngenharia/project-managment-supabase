@@ -75,7 +75,7 @@ export default function Dashboard() {
       
       setDisciplinas(allDisciplinas || []);
       
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.perfil === 'admin') {
         setStats({
           empreendimentos: allEmpreendimentos?.length || 0,
           disciplinas: (allDisciplinas || []).length,
