@@ -22,7 +22,7 @@ import PlaylistTrigger from "@/components/playlist/PlaylistTrigger";
 import NotificacoesOcasionais from "@/components/dashboard/NotificacoesOcasionais";
 import NotificationGenerator from "@/components/utils/NotificationGenerator";
 
-const LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/577f93874_logo_Interativa_versao_final_sem_fundo_0002.png";
+const LOGO_URL = "https://bkemxetgfezhnwgbmxbp.supabase.co/storage/v1/object/public/uploads/Test.jpg";
 
 const LayoutComponent = ({ children, currentPageName }) => {
   const location = useLocation();
