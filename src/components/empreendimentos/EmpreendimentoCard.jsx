@@ -64,13 +64,13 @@ function EmpreendimentoCard({ empreendimento, user, onEdit, onDelete }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider') && (
+                {user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider' || user.perfil === 'coordenador' || user.perfil === 'gestao' || user.perfil === 'direcao') && (
                   <DropdownMenuItem onClick={() => onEdit(empreendimento)}>
                     <Edit className="w-4 h-4 mr-2" />
                     Editar
                   </DropdownMenuItem>
                 )}
-                {user && (user.role === 'admin' || user.perfil === 'admin') && (
+                {user && (user.role === 'admin' || user.perfil === 'admin' || user.perfil === 'lider' || user.perfil === 'direcao') && (
                   <DropdownMenuItem onClick={() => onDelete(empreendimento.id)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Excluir
