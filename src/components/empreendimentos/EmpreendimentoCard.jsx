@@ -35,8 +35,8 @@ function EmpreendimentoCard({ empreendimento, user, onEdit, onDelete }) {
   console.log('EmpreendimentoCard - User role:', user?.role);
   console.log('EmpreendimentoCard - User perfil:', user?.perfil);
 
-  const canEdit = user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider' || user.perfil === 'coordenador' || user.perfil === 'gestao' || user.perfil === 'direcao');
-  const canDelete = user && (user.role === 'admin' || user.perfil === 'admin' || user.perfil === 'lider' || user.perfil === 'direcao');
+  const canEdit = user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider' || user.perfil === 'coordenador' || user.perfil === 'gestao' || user.perfil === 'direcao' || user.perfil === 'user');
+  const canDelete = user && (user.role === 'admin' || user.perfil === 'admin' || user.perfil === 'lider' || user.perfil === 'direcao' || user.perfil === 'user');
 
   console.log('EmpreendimentoCard - canEdit:', canEdit);
   console.log('EmpreendimentoCard - canDelete:', canDelete);
