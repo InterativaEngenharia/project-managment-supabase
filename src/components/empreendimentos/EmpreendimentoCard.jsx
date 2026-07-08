@@ -30,6 +30,17 @@ const statusLabels = {
 };
 
 function EmpreendimentoCard({ empreendimento, user, onEdit, onDelete }) {
+  // Debug: Log user permissions
+  console.log('EmpreendimentoCard - User:', user);
+  console.log('EmpreendimentoCard - User role:', user?.role);
+  console.log('EmpreendimentoCard - User perfil:', user?.perfil);
+
+  const canEdit = user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider' || user.perfil === 'coordenador' || user.perfil === 'gestao' || user.perfil === 'direcao');
+  const canDelete = user && (user.role === 'admin' || user.perfil === 'admin' || user.perfil === 'lider' || user.perfil === 'direcao');
+
+  console.log('EmpreendimentoCard - canEdit:', canEdit);
+  console.log('EmpreendimentoCard - canDelete:', canDelete);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -64,13 +75,13 @@ function EmpreendimentoCard({ empreendimento, user, onEdit, onDelete }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider' || user.perfil === 'coordenador' || user.perfil === 'gestao' || user.perfil === 'direcao') && (
+                {canEdit && (
                   <DropdownMenuItem onClick={() => onEdit(empreendimento)}>
                     <Edit className="w-4 h-4 mr-2" />
                     Editar
                   </DropdownMenuItem>
                 )}
-                {user && (user.role === 'admin' || user.perfil === 'admin' || user.perfil === 'lider' || user.perfil === 'direcao') && (
+                {canDelete && (
                   <DropdownMenuItem onClick={() => onDelete(empreendimento.id)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Excluir
