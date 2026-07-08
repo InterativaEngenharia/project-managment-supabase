@@ -28,6 +28,7 @@ const LayoutComponent = ({ children, currentPageName }) => {
   const location = useLocation();
   const { user, isLoading, userProfile, hasPermission, isAdmin, perfilAtual, allPlanejamentos, isLoadingPlanejamentos, atividadesGenericas, allEmpreendimentos, allUsers } = useContext(ActivityTimerContext);
   const isDev = import.meta.env.DEV;
+  const isTesting = import.meta.env.VITE_IS_TESTING === 'true';
   
   const getNavigationItems = (hasPermission, perfilAtual, isAdmin) => {
     const items = [
@@ -144,10 +145,10 @@ const LayoutComponent = ({ children, currentPageName }) => {
 
   return (
     <SidebarProvider>
-      <div className={`min-h-screen flex w-full ${isDev ? 'bg-amber-200' : 'bg-gray-50'}`}>
-        {isDev && (
+      <div className={`min-h-screen flex w-full ${isDev || isTesting ? 'bg-amber-200' : 'bg-gray-50'}`}>
+        {(isDev || isTesting) && (
           <div className="fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm font-bold z-50">
-            AMBIENTE DE DESENVOLVIMENTO
+            AMBIENTE DE TESTE
           </div>
         )}
         <Sidebar className="border-r border-gray-200 bg-white">
