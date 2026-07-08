@@ -78,7 +78,8 @@ export default function EmpreendimentoPage() {
     user.perfil === 'lider' ||
     user.perfil === 'coordenador' ||
     user.perfil === 'gestao' ||
-    user.perfil === 'direcao'
+    user.perfil === 'direcao' ||
+    user.perfil === 'user' // Usuários comuns também podem editar documentos
   );
 
   const visibleTabsForUser = useMemo(() => {

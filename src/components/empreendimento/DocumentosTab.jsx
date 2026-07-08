@@ -618,7 +618,7 @@ export default function DocumentosTab({
           datas[etapa][revisao] = dataFormatada;
         });
 
-        documentosParaImportar.push({
+        const docData = {
           numero: row.numero, arquivo: row.arquivo, descritivo: row.descritivo || '',
           disciplina: disciplinasValidas[0] || disciplinas[0]?.nome || '',
           disciplinas: disciplinasValidas.slice(0, 2), subdisciplinas: subdisciplinasArray,
@@ -627,8 +627,12 @@ export default function DocumentosTab({
           pavimento_id: pavimento?.id || null, empreendimento_id: empreendimento.id,
           tempo_total: 0, tempo_concepcao: 0, tempo_planejamento: 0,
           tempo_estudo_preliminar: 0, tempo_ante_projeto: 0, tempo_projeto_basico: 0,
-          tempo_projeto_executivo: 0, tempo_liberado_obra: 0,
-          datas: Object.keys(datas).length > 0 ? datas : null
+          tempo_projeto_executivo: 0, tempo_liberado_obra: 0
+        };
+
+        documentosParaImportar.push({
+          ...docData,
+          datas: Object.keys(datas).length > 0 ? datas : null // Guardar datas separadamente para DataCadastro
         });
       }
 
@@ -637,12 +641,19 @@ export default function DocumentosTab({
 
       let sucessos = 0, falhas = 0;
       const documentosCriados = [];
+      const errosCriacao = [];
       for (const doc of documentosParaImportar) {
         try {
-          const docCriado = await retryWithBackoff(() => Documento.create(doc), 3, 1000, `importDoc-${doc.numero}`);
+          // Extrair datas para usar em DataCadastro, não incluir em Documento.create
+          const { datas, ...docData } = doc;
+          const docCriado = await retryWithBackoff(() => Documento.create(docData), 3, 1000, `importDoc-${doc.numero}`);
           documentosCriados.push({ original: doc, criado: docCriado });
           sucessos++;
-        } catch (error) { falhas++; }
+        } catch (error) { 
+          falhas++; 
+          errosCriacao.push(`Documento ${doc.numero}: ${error.message}`);
+          console.error(`Erro ao criar documento ${doc.numero}:`, error);
+        }
       }
 
       let sucessosCadastro = 0, falhasCadastro = 0;
@@ -660,6 +671,7 @@ export default function DocumentosTab({
       }
 
       let mensagem = `Importação concluída!\n\nDocumentos: ${sucessos} sucessos, ${falhas} falhas`;
+      if (errosCriacao.length > 0) mensagem += `\n\nErros na criação:\n${errosCriacao.join('\n')}`;
       if (sucessosCadastro > 0 || falhasCadastro > 0) mensagem += `\nDatas de Cadastro: ${sucessosCadastro} sucessos, ${falhasCadastro} falhas`;
       alert(mensagem);
       if (sucessos > 0) { await onUpdate(); setShowImportModal(false); setImportFile(null); }
