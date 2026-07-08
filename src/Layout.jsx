@@ -27,6 +27,7 @@ const LOGO_URL = "https://bkemxetgfezhnwgbmxbp.supabase.co/storage/v1/object/pub
 const LayoutComponent = ({ children, currentPageName }) => {
   const location = useLocation();
   const { user, isLoading, userProfile, hasPermission, isAdmin, perfilAtual, allPlanejamentos, isLoadingPlanejamentos, atividadesGenericas, allEmpreendimentos, allUsers } = useContext(ActivityTimerContext);
+  const isDev = import.meta.env.DEV;
   
   const getNavigationItems = (hasPermission, perfilAtual, isAdmin) => {
     const items = [
@@ -143,7 +144,12 @@ const LayoutComponent = ({ children, currentPageName }) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className={`min-h-screen flex w-full ${isDev ? 'bg-amber-200' : 'bg-gray-50'}`}>
+        {isDev && (
+          <div className="fixed top-0 left-0 right-0 bg-red-500 text-white text-center py-1 text-sm font-bold z-50">
+            AMBIENTE DE DESENVOLVIMENTO
+          </div>
+        )}
         <Sidebar className="border-r border-gray-200 bg-white">
           <SidebarHeader className="border-b border-gray-100 p-6">
             <div className="flex flex-col items-center justify-center gap-2">

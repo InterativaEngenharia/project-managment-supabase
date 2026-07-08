@@ -67,16 +67,13 @@ const AuthenticatedApp = () => {
 
 
 function App() {
-  const isDev = import.meta.env.DEV;
 
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <div className={isDev ? "min-h-screen bg-amber-50" : "min-h-screen bg-white"}>
-            <NavigationTracker />
-            <AuthenticatedApp />
-          </div>
+          <NavigationTracker />
+          <AuthenticatedApp />
         </Router>
         <Toaster />
         <VisualEditAgent />
