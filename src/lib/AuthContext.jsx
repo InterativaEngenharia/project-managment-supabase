@@ -30,6 +30,10 @@ export const AuthProvider = ({ children }) => {
   const [authChecked, setAuthChecked] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings] = useState(null);
+  // true quando o usuário chegou por um link de recuperação/convite de senha
+  // (evento PASSWORD_RECOVERY do Supabase) - App.jsx mostra a tela
+  // SetPassword em vez do resto do app enquanto isso for true.
+  const [needsPasswordSetup, setNeedsPasswordSetup] = useState(false);
 
   /**
    * Verifica se o e-mail autenticado no Supabase Auth corresponde a um
@@ -104,7 +108,19 @@ export const AuthProvider = ({ children }) => {
 
     // Mantém o estado sincronizado com login/logout feitos em outra aba,
     // expiração de token, etc.
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, _session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // O Supabase já criou uma sessão a partir do token do link de
+        // recuperação (detectSessionInUrl: true no supabaseClient.js). Não
+        // chamamos checkUserAuth() aqui de propósito - isso deixaria o
+        // usuário entrar no app antes de trocar a senha. App.jsx mostra
+        // SetPassword enquanto needsPasswordSetup for true.
+        setNeedsPasswordSetup(true);
+        setIsLoadingAuth(false);
+        setIsLoadingPublicSettings(false);
+        setAuthChecked(true);
+        return;
+      }
       checkUserAuth();
     });
 
@@ -135,6 +151,12 @@ export const AuthProvider = ({ children }) => {
     // em isAuthenticated / authError.
   };
 
+  /** Chamado pelo SetPassword depois que a nova senha foi salva com sucesso. */
+  const completePasswordSetup = useCallback(async () => {
+    setNeedsPasswordSetup(false);
+    await checkUserAuth();
+  }, [checkUserAuth]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -145,6 +167,8 @@ export const AuthProvider = ({ children }) => {
         authChecked,
         authError,
         appPublicSettings,
+        needsPasswordSetup,
+        completePasswordSetup,
         logout,
         navigateToLogin,
         checkAppState,

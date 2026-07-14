@@ -9,6 +9,11 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isSendingReset, setIsSendingReset] = useState(false);
+  const [resetMessage, setResetMessage] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -28,6 +33,27 @@ export default function Login() {
 
     await checkUserAuth();
     setIsSubmitting(false);
+  };
+
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setIsSendingReset(true);
+    setResetMessage(null);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: window.location.origin,
+    });
+
+    setIsSendingReset(false);
+
+    // Mesma mensagem em caso de erro ou sucesso - evita confirmar pra quem
+    // está tentando descobrir se um e-mail está cadastrado no sistema.
+    if (error) {
+      console.error('Erro ao solicitar redefinição de senha:', error);
+    }
+    setResetMessage(
+      'Se esse e-mail estiver cadastrado, você vai receber um link de redefinição de senha em instantes.'
+    );
   };
 
   return (
@@ -93,10 +119,56 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="text-xs text-slate-400 text-center mt-6">
-          Esqueceu a senha? Use o link de redefinição enviado por e-mail, ou
-          peça um novo convite ao administrador.
-        </p>
+        {!showForgotPassword ? (
+          <button
+            type="button"
+            onClick={() => {
+              setShowForgotPassword(true);
+              setResetEmail(email);
+              setResetMessage(null);
+            }}
+            className="text-xs text-slate-500 hover:text-slate-700 underline text-center mt-6 w-full"
+          >
+            Esqueceu a senha?
+          </button>
+        ) : (
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            {resetMessage ? (
+              <p className="text-sm text-slate-600 text-center">{resetMessage}</p>
+            ) : (
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-3">
+                <p className="text-xs text-slate-500 text-center">
+                  Informe seu e-mail para receber um link de redefinição de senha.
+                </p>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  placeholder="voce@empresa.com"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="flex-1 py-2 px-4 border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSendingReset}
+                    className="flex-1 py-2 px-4 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSendingReset ? 'Enviando...' : 'Enviar link'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
