@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { authMiddleware, AuthenticatedRequest } from '../../middlewares/auth.middleware';
-import { authorizeMiddleware } from '../../middlewares/authorize.middleware';
+import { requirePerfilMinimo } from '../../middlewares/authorize.middleware';
 import { disciplinasController } from './disciplinas.controller';
 import {
   createDisciplinaSchema,
@@ -32,7 +32,7 @@ export async function disciplinasRoutes(fastify: FastifyInstance) {
     schema: { body: createDisciplinaSchema },
     preHandler: [
       authMiddleware,
-      authorizeMiddleware(['gestao', 'coordenador', 'lider', 'direcao'], ['admin'])
+      requirePerfilMinimo('coordenador')
     ]
   }, async (request: AuthenticatedRequest, reply) => {
     return disciplinasController.create(request, reply);
@@ -43,7 +43,7 @@ export async function disciplinasRoutes(fastify: FastifyInstance) {
     schema: { params: disciplinaParamsSchema, body: updateDisciplinaSchema },
     preHandler: [
       authMiddleware,
-      authorizeMiddleware(['gestao', 'coordenador', 'lider', 'direcao'], ['admin'])
+      requirePerfilMinimo('coordenador')
     ]
   }, async (request: AuthenticatedRequest, reply) => {
     return disciplinasController.update(request, reply);
@@ -54,7 +54,7 @@ export async function disciplinasRoutes(fastify: FastifyInstance) {
     schema: { params: disciplinaParamsSchema },
     preHandler: [
       authMiddleware,
-      authorizeMiddleware(['gestao', 'coordenador', 'lider', 'direcao'], ['admin'])
+      requirePerfilMinimo('coordenador')
     ]
   }, async (request: AuthenticatedRequest, reply) => {
     return disciplinasController.delete(request, reply);

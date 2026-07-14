@@ -1,68 +1,47 @@
 import { FastifyReply } from 'fastify';
 import { AuthenticatedRequest } from './auth.middleware';
+import { temNivelMinimo, isAdminPerfil, PERFIS_HIERARQUIA } from '../shared/perfis';
 
 /**
- * Middleware de autorização baseado em perfil/role
- * Baseado nas regras de routePermissions.js do frontend
+ * Exige um nível mínimo na hierarquia de perfis (ver shared/perfis.ts).
+ * "admin" sempre passa, independente do nível pedido.
  */
-export function authorizeMiddleware(requiredProfiles?: string[], requiredRoles?: string[]) {
+export function requirePerfilMinimo(minimo: keyof typeof PERFIS_HIERARQUIA) {
   return async (request: AuthenticatedRequest, reply: FastifyReply) => {
     if (!request.user) {
       return reply.status(401).send({ error: 'Não autenticado' });
     }
 
-    const { perfil, role } = request.user;
-
-    // Admin tem acesso a tudo
-    if (role === 'admin') {
-      return; // Permite acesso
+    if (!temNivelMinimo(request.user.perfil, minimo)) {
+      return reply.status(403).send({
+        error: 'Permissão insuficiente',
+        nivelMinimo: minimo,
+        perfilAtual: request.user.perfil
+      });
     }
-
-    // Verificar perfil
-    if (requiredProfiles && requiredProfiles.length > 0) {
-      if (!requiredProfiles.includes(perfil)) {
-        return reply.status(403).send({ 
-          error: 'Permissão insuficiente',
-          required: requiredProfiles,
-          current: perfil
-        });
-      }
-    }
-
-    // Verificar role
-    if (requiredRoles && requiredRoles.length > 0) {
-      if (!requiredRoles.includes(role)) {
-        return reply.status(403).send({ 
-          error: 'Role insuficiente',
-          required: requiredRoles,
-          current: role
-        });
-      }
-    }
-
-    return; // Permite acesso
   };
 }
 
 /**
- * Helper para verificar permissões específicas (similar ao hasPermission do frontend)
+ * Exige que o perfil do usuário esteja numa lista exata (para regras que não
+ * seguem a hierarquia numérica - ex: só lider/direcao acessam Usuarios, e
+ * gestao fica de fora mesmo tendo nível mais alto que lider).
+ * "admin" sempre passa.
  */
-export function hasPermission(user: any, permission: string): boolean {
-  if (user.role === 'admin') return true;
+export function requirePerfilExato(perfisPermitidos: string[]) {
+  return async (request: AuthenticatedRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      return reply.status(401).send({ error: 'Não autenticado' });
+    }
 
-  const perfil = user.perfil;
+    if (isAdminPerfil(request.user.perfil)) return;
 
-  // Mapeamento de permissões por perfil (baseado no hasPermission do frontend)
-  const permissionsByProfile: Record<string, string[]> = {
-    'gestao': ['gestao'],
-    'coordenador': ['coordenador', 'gestao'],
-    'lider': ['lider', 'coordenador', 'gestao'],
-    'direcao': ['direcao', 'lider', 'coordenador', 'gestao'],
-    'apoio': ['apoio'],
-    'consultor': ['consultor'],
-    'user': ['user']
+    if (!request.user.perfil || !perfisPermitidos.includes(request.user.perfil)) {
+      return reply.status(403).send({
+        error: 'Permissão insuficiente',
+        perfisPermitidos,
+        perfilAtual: request.user.perfil
+      });
+    }
   };
-
-  const userPermissions = permissionsByProfile[perfil] || ['user'];
-  return userPermissions.includes(permission);
 }

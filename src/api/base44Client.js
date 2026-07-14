@@ -1,14 +1,14 @@
 import { supabase } from '@/lib/supabaseClient';
 import { createEntity } from './entityFactory';
+import { apiUsuarios } from '@/services/apiUsuarios';
 
 // -----------------------------------------------------------------------
 // 1) ENTIDADES (banco de dados)
 // -----------------------------------------------------------------------
-// Nomes exatos das 27 tabelas de negócio migradas do Base44 para o Supabase
+// Nomes exatos das 26 tabelas de negócio migradas do Base44 para o Supabase
 // (ver base44/entities/*.jsonc). "Analitico" é usada em várias telas do
-// código mas não apareceu nos exports de dados/schema originais — confirme
-// se essa tabela existe no seu Supabase antes de usar as telas que dependem
-// dela (Dashboard, SeletorPlanejamento, Analitico.jsx, PlanejamentoForm).
+// código mas não apareceu nos exports de dados/schema originais — tabela
+// foi criada manualmente no Supabase.
 const ENTITY_NAMES = [
   'AlteracaoEtapa',
   'AtaReuniao',
@@ -36,14 +36,18 @@ const ENTITY_NAMES = [
   'PlanejamentoAtividade',
   'PlanejamentoDocumento',
   'SobraUsuario',
-  'TipoObra',
-  'Usuario',
   'Analitico', // ⚠️ ver nota acima
 ];
+// "Usuario" foi retirada de ENTITY_NAMES de propósito: é a tabela que define
+// perfil/permissão de cada usuário, então não pode mais ser lida/escrita
+// direto no Postgres com a anon key (isso é o que permitia um usuário comum
+// se autopromover editando o próprio registro). Ela passa pelo backend -
+// ver src/services/apiUsuarios.js.
 
 const entities = Object.fromEntries(
   ENTITY_NAMES.map((name) => [name, createEntity(name)])
 );
+entities.Usuario = apiUsuarios;
 
 // -----------------------------------------------------------------------
 // 2) AUTENTICAÇÃO (substitui base44.auth)
@@ -79,12 +83,20 @@ export const auth = {
     return mapSupabaseUser(data.user);
   },
 
-  /** auth.updateMyUserData(payload) - mescla campos no user_metadata */
+  /**
+   * auth.updateMyUserData(payload) - mescla campos no user_metadata.
+   * "perfil" e "role" nunca são aceitos aqui: é o user_metadata do Supabase
+   * Auth, que o próprio usuário controla via supabase.auth.updateUser() -
+   * deixar gravar esses campos aqui era uma escalada de privilégio trivial
+   * (o usuário se autopromovendo a admin pelo console do navegador). Quem
+   * decide perfil/role é a tabela Usuario, através do backend.
+   */
   async updateMyUserData(payload) {
+    const { perfil, role, ...payloadSeguro } = payload;
     const { data: current } = await supabase.auth.getUser();
     const currentMeta = current?.user?.user_metadata || {};
     const { data, error } = await supabase.auth.updateUser({
-      data: { ...currentMeta, ...payload },
+      data: { ...currentMeta, ...payloadSeguro },
     });
     if (error) throw new Error(`[auth.updateMyUserData] ${error.message}`);
     return mapSupabaseUser(data.user);
@@ -152,26 +164,10 @@ export const Core = {
     return data;
   },
 
-  /** Ainda não migrado — o Base44 usava um provedor próprio de SMS. */
-  async SendSMS() {
-    throw new Error(
-      'SendSMS ainda não foi implementado nesta migração. Configure um ' +
-      'provedor de SMS (ex: Twilio) em uma Edge Function e implemente aqui.'
-    );
-  },
-
-  /** Ainda não migrado — recurso de IA do Base44 (geração de imagem). */
-  async GenerateImage() {
-    throw new Error('GenerateImage ainda não foi implementado nesta migração.');
-  },
-
-  /** Ainda não migrado — recurso de IA do Base44 (chamada de LLM genérica). */
-  async InvokeLLM() {
-    throw new Error(
-      'InvokeLLM ainda não foi implementado nesta migração. Isso exige uma ' +
-      'Edge Function própria que chame a API de um provedor de IA.'
-    );
-  },
+  /** Removido - não implementado, sem uso conhecido no código. Reavaliar se surgir necessidade futura. */
+  // async SendSMS() { ... }
+  // async GenerateImage() { ... }
+  // async InvokeLLM() { ... }
 
   /**
    * Ainda não migrado — usado hoje em PRETab.jsx e PRE.jsx para extrair

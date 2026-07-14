@@ -1,20 +1,22 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { supabaseAdmin } from '../config';
+import { supabaseAdmin, prisma } from '../config';
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
     id: string;
+    usuarioId: string;
     email: string;
     perfil: string;
-    role: string;
-    nome?: string;
-    cargo?: string;
+    nome?: string | null;
+    cargo?: string | null;
   };
 }
 
 /**
  * Middleware de autenticação
- * Valida o JWT do Supabase Auth e popula req.user
+ * Valida o JWT do Supabase Auth e popula req.user com os dados da tabela
+ * Usuario (nunca do user_metadata do Supabase Auth, que o próprio usuário
+ * pode reescrever via supabase.auth.updateUser()).
  */
 export async function authMiddleware(
   request: AuthenticatedRequest,
@@ -38,24 +40,20 @@ export async function authMiddleware(
 
     const userEmail = data.user.email;
 
-    // Buscar perfil do usuário na tabela Usuario
-    const { data: usuario, error: usuarioError } = await supabaseAdmin
-      .from('Usuario')
-      .select('*')
-      .eq('email', userEmail)
-      .single();
+    // Buscar perfil do usuário na tabela Usuario - única fonte de verdade
+    // para autorização (a tabela não tem coluna "role", só "perfil").
+    const usuario = await prisma.usuario.findFirst({ where: { email: userEmail } });
 
-    if (usuarioError || !usuario) {
+    if (!usuario) {
       return reply.status(403).send({ error: 'Usuário não cadastrado no sistema' });
     }
 
-    // Popular req.user com dados do usuário
     request.user = {
       id: data.user.id,
+      usuarioId: usuario.id,
       email: userEmail,
       perfil: usuario.perfil || 'user',
-      role: usuario.role || 'user',
-      nome: usuario.nome || data.user.user_metadata?.nome,
+      nome: usuario.nome,
       cargo: usuario.cargo
     };
 

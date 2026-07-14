@@ -6,6 +6,7 @@
 // usados em várias telas do app — sem precisar tocar nesse código.
 
 import { base44 } from '@/api/base44Client';
+import { apiUsuarios } from '@/services/apiUsuarios';
 
 export const AlteracaoEtapa = base44.entities.AlteracaoEtapa;
 export const AtaReuniao = base44.entities.AtaReuniao;
@@ -33,13 +34,13 @@ export const Pavimento = base44.entities.Pavimento;
 export const PlanejamentoAtividade = base44.entities.PlanejamentoAtividade;
 export const PlanejamentoDocumento = base44.entities.PlanejamentoDocumento;
 export const SobraUsuario = base44.entities.SobraUsuario;
-export const TipoObra = base44.entities.TipoObra;
-export const Usuario = base44.entities.Usuario;
+// Usuario passa pelo backend (não mais leitura/escrita direta no Postgres
+// com a anon key) - ver src/services/apiUsuarios.js.
+export const Usuario = apiUsuarios;
 
 // ⚠️ "Analitico" é usada em várias telas (Dashboard, SeletorPlanejamento,
 // Analitico.jsx, PlanejamentoForm) mas não apareceu no schema/dados
-// exportados do Base44 originalmente. Confirme se essa tabela existe no seu
-// Supabase — se não existir, crie-a antes de usar essas telas.
+// exportados do Base44 originalmente. Tabela foi criada manualmente no Supabase.
 export const Analitico = base44.entities.Analitico;
 
 // auth sdk (era "export const User = base44.auth" no entities.js original):

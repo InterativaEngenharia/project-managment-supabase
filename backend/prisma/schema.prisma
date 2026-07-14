@@ -31,3 +31,28 @@ model Disciplina {
 
   @@map("Disciplina")
 }
+
+// Colunas confirmadas via CREATE TABLE public."Usuario" real (não é um schema
+// de melhor esforço como o de Disciplina acima). Não existe coluna "role" -
+// só "perfil". O middleware de auth não deve mais referenciar "role".
+model Usuario {
+  id                             String    @id
+  nome                           String?
+  email                          String?
+  email_notificacao              String?
+  cargo                          String?
+  departamento                   String?
+  equipe_id                      String?
+  telefone                       String?
+  data_admissao                  String?
+  status                         String?   @default("ativo")
+  perfil                         String?   @default("user")
+  usuarios_permitidos_visualizar Json?
+  created_date                   DateTime?
+  updated_date                   DateTime?
+  created_by_id                  String?
+  created_by                     String?
+  is_sample                      Boolean?  @default(false)
+
+  @@map("Usuario")
+}

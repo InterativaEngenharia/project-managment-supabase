@@ -75,6 +75,8 @@ fastify.setErrorHandler(errorHandler);
 
 // Rotas
 import { disciplinasRoutes } from './modules/disciplinas/disciplinas.routes';
+import { usuariosRoutes } from './modules/usuarios/usuarios.routes';
 fastify.register(disciplinasRoutes, { prefix: '/api' });
+fastify.register(usuariosRoutes, { prefix: '/api' });
 
 export default fastify;
