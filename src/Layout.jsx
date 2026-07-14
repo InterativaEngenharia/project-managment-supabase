@@ -17,6 +17,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { ActivityTimerProvider, ActivityTimerContext } from "@/components/contexts/ActivityTimerContext";
+import { canAccessRoute } from "@/utils/routePermissions";
 import { useAuth } from "@/lib/AuthContext";
 import GlobalTimer from "@/components/layout/GlobalTimer";
 import PlaylistTrigger from "@/components/playlist/PlaylistTrigger";
@@ -133,10 +134,11 @@ const LayoutComponent = ({ children, currentPageName }) => {
       });
     }
 
-    return items.filter(item => item.show);
+    return items;
   };
 
   const navigationItems = isLoading ? [] : getNavigationItems(hasPermission, perfilAtual, isAdmin);
+  const hasRouteAccess = isLoading || canAccessRoute(currentPageName, hasPermission, perfilAtual, isAdmin);
 
   const getPerfilLabel = (perfilAtual, isAdmin) => {
     if (isAdmin) return 'Administrador';
@@ -230,7 +232,14 @@ const LayoutComponent = ({ children, currentPageName }) => {
           </header>
 
           <div className="flex-1 overflow-auto overflow-x-hidden">
-            {children}
+            {hasRouteAccess ? children : (
+              <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-4">
+                <h2 className="text-lg font-semibold text-gray-900">Acesso restrito</h2>
+                <p className="text-sm text-gray-500 max-w-sm">
+                  Seu perfil não tem permissão para acessar esta página.
+                </p>
+              </div>
+            )}
           </div>
         </main>
         

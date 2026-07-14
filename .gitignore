@@ -30,3 +30,9 @@ dist-ssr
 .env
 .vercel
 .env*
+!.env.example
+
+# Database dumps / backups - may contain credentials and PII, never commit
+*.sql
+*.dump
+*.backup

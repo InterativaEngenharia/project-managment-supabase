@@ -1,0 +1,33 @@
+// Modelos escritos à mão a partir das colunas reais observadas em um dump
+// do banco (COPY public."Disciplina" (...)), porque a introspecção via
+// `npx prisma db pull` não pôde ser validada neste ambiente (a conexão
+// direta db.<project>.supabase.co só resolve em IPv6). Tipos e nullability
+// são melhor esforço — rode `npm run prisma:pull` numa rede com acesso ao
+// Postgres (direto ou via connection pooler) para confirmar/completar antes
+// de confiar neste schema em produção. Ao migrar um novo módulo, prefira
+// sempre rodar a introspecção real em vez de copiar este padrão às cegas.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Disciplina {
+  id             String    @id
+  nome           String
+  cor            String?
+  icone          String?
+  // Tipo real incerto sem introspecção (jsonb vs text[]) - confirmar via db pull.
+  codisciplinas  Json?
+  ordem          Int?
+  created_date   DateTime?
+  updated_date   DateTime?
+  created_by_id  String?
+  created_by     String?
+  is_sample      Boolean?
+
+  @@map("Disciplina")
+}
