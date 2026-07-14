@@ -8,7 +8,8 @@ export const createDisciplinaSchema = z.object({
   cor: z.string().optional(),
   icone: z.string().optional(),
   codisciplinas: z.any().optional(),
-  ordem: z.number().int().optional()
+  // Coluna real é text, não numérica (confirmado via prisma db pull).
+  ordem: z.string().optional()
 });
 
 export const updateDisciplinaSchema = z.object({
@@ -16,7 +17,8 @@ export const updateDisciplinaSchema = z.object({
   cor: z.string().optional(),
   icone: z.string().optional(),
   codisciplinas: z.any().optional(),
-  ordem: z.number().int().optional()
+  // Coluna real é text, não numérica (confirmado via prisma db pull).
+  ordem: z.string().optional()
 });
 
 export const disciplinaParamsSchema = z.object({

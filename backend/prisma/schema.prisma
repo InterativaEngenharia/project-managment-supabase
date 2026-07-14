@@ -1,11 +1,3 @@
-// Modelos escritos à mão a partir das colunas reais observadas em um dump
-// do banco (COPY public."Disciplina" (...)), porque a introspecção via
-// `npx prisma db pull` não pôde ser validada neste ambiente (a conexão
-// direta db.<project>.supabase.co só resolve em IPv6). Tipos e nullability
-// são melhor esforço — rode `npm run prisma:pull` numa rede com acesso ao
-// Postgres (direto ou via connection pooler) para confirmar/completar antes
-// de confiar neste schema em produção. Ao migrar um novo módulo, prefira
-// sempre rodar a introspecção real em vez de copiar este padrão às cegas.
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,27 +8,23 @@ datasource db {
 }
 
 model Disciplina {
-  id             String    @id
-  nome           String
-  cor            String?
-  icone          String?
-  // Tipo real incerto sem introspecção (jsonb vs text[]) - confirmar via db pull.
-  codisciplinas  Json?
-  ordem          Int?
-  created_date   DateTime?
-  updated_date   DateTime?
-  created_by_id  String?
-  created_by     String?
-  is_sample      Boolean?
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  nome          String?
+  cor           String?
+  icone         String?
+  codisciplinas Json?
+  created_date  DateTime? @db.Timestamp(6)
+  updated_date  DateTime? @db.Timestamp(6)
+  created_by_id String?
+  created_by    String?
+  is_sample     Boolean?  @default(false)
+  ordem         String?
 
   @@map("Disciplina")
 }
 
-// Colunas confirmadas via CREATE TABLE public."Usuario" real (não é um schema
-// de melhor esforço como o de Disciplina acima). Não existe coluna "role" -
-// só "perfil". O middleware de auth não deve mais referenciar "role".
 model Usuario {
-  id                             String    @id
+  id                             String    @id @default(dbgenerated("gen_random_uuid()"))
   nome                           String?
   email                          String?
   email_notificacao              String?
@@ -48,11 +36,531 @@ model Usuario {
   status                         String?   @default("ativo")
   perfil                         String?   @default("user")
   usuarios_permitidos_visualizar Json?
-  created_date                   DateTime?
-  updated_date                   DateTime?
+  created_date                   DateTime? @db.Timestamp(6)
+  updated_date                   DateTime? @db.Timestamp(6)
   created_by_id                  String?
   created_by                     String?
   is_sample                      Boolean?  @default(false)
 
   @@map("Usuario")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AlteracaoEtapa {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  atividade_id        String?
+  id_atividade        String?
+  nome_atividade      String?
+  disciplina          String?
+  subdisciplina       String?
+  etapa_anterior      String?
+  etapa_nova          String?
+  empreendimento_id   String?
+  empreendimento_nome String?
+  data_alteracao      String?
+  usuario_email       String?
+  usuario_nome        String?
+  created_date        DateTime? @db.Timestamp(6)
+  updated_date        DateTime? @db.Timestamp(6)
+  created_by_id       String?
+  created_by          String?
+  is_sample           Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Analitico {
+  id                String  @id @db.Uuid
+  empreendimento_id String?
+  documento_id      String?
+  atividade_id      String?
+  nome              String?
+  disciplina        String?
+  etapa             String?
+  status            String?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AtaReuniao {
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  assunto       String?
+  local         String?
+  data          String?
+  horario       String?
+  participantes Json?
+  folha         String?
+  rev           String?
+  controle      String?
+  emissao       String?
+  providencias  Json?
+  status        String?   @default("rascunho")
+  created_date  DateTime? @db.Timestamp(6)
+  updated_date  DateTime? @db.Timestamp(6)
+  created_by_id String?
+  created_by    String?
+  is_sample     Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Atividade {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  id_atividade        String?
+  etapa               String?
+  disciplina          String?
+  subdisciplina       String?
+  atividade           String?
+  predecessora        String?
+  tempo               Decimal?  @db.Decimal
+  funcao              String?
+  empreendimento_id   String?
+  documento_id        String?
+  documento_ids       Json?
+  status_planejamento String?   @default("nao_planejada")
+  created_date        DateTime? @db.Timestamp(6)
+  updated_date        DateTime? @db.Timestamp(6)
+  created_by_id       String?
+  created_by          String?
+  is_sample           Boolean?  @default(false)
+  set                 String?   @map("$set")
+  tipo_contagem       String?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AtividadeFuncao {
+  id             String    @id @default(dbgenerated("gen_random_uuid()"))
+  funcao         String?
+  atividade      String?
+  frequencia     String?
+  tempo_estimado Decimal?  @db.Decimal
+  dias_semana    Json?
+  dia_mes        Int?
+  created_date   DateTime? @db.Timestamp(6)
+  updated_date   DateTime? @db.Timestamp(6)
+  created_by_id  String?
+  created_by     String?
+  is_sample      Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AtividadeGenerica {
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  nome          String?
+  perfis        Json?
+  created_date  DateTime? @db.Timestamp(6)
+  updated_date  DateTime? @db.Timestamp(6)
+  created_by_id String?
+  created_by    String?
+  is_sample     Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model AtividadesEmpreendimento {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  id_atividade        String?
+  etapa               String?
+  disciplina          String?
+  subdisciplina       String?
+  atividade           String?
+  predecessora        String?
+  tempo               Decimal?  @db.Decimal
+  funcao              String?
+  empreendimento_id   String?
+  documento_id        String?
+  documento_ids       Json?
+  pavimento_id        String?
+  status_planejamento String?   @default("nao_planejada")
+  status_execucao     String?   @default("nao_iniciada")
+  planejamento_id     String?
+  executor            String?
+  data_conclusao      String?
+  data_exclusao       String?
+  motivo_exclusao     String?
+  created_date        DateTime? @db.Timestamp(6)
+  updated_date        DateTime? @db.Timestamp(6)
+  created_by_id       String?
+  created_by          String?
+  is_sample           Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ChecklistItem {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()"))
+  checklist_id       String?
+  secao              String?
+  numero_item        String?
+  descricao          String?
+  ordem              Decimal?  @db.Decimal
+  status_por_periodo Json?
+  observacoes        String?
+  responsavel        String?
+  pre_item_id        String?
+  created_date       DateTime? @db.Timestamp(6)
+  updated_date       DateTime? @db.Timestamp(6)
+  created_by_id      String?
+  created_by         String?
+  is_sample          Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ChecklistPlanejamento {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  tipo                String?
+  empreendimento_id   String?
+  tecnico_responsavel String?
+  numero_os           String?
+  cliente             String?
+  data_entrega        String?
+  legenda             Json?
+  periodos            Json?
+  status              String?   @default("em_andamento")
+  created_date        DateTime? @db.Timestamp(6)
+  updated_date        DateTime? @db.Timestamp(6)
+  created_by_id       String?
+  created_by          String?
+  is_sample           Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Comercial {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  numero              String?
+  data_solicitacao    String?
+  solicitante         String?
+  cliente             String?
+  empreendimento      String?
+  tipo_empreendimento String?
+  tipo_obra           String?
+  utilizacao          String?
+  parceiros           Json?
+  disciplinas         Json?
+  codisciplinas       Json?
+  pavimentos          Json?
+  escopo              String?
+  area                Decimal?  @db.Decimal
+  estado              String?
+  valor_bim           Decimal?  @db.Decimal
+  valor_cad           Decimal?  @db.Decimal
+  data_aprovacao      String?
+  status              String?   @default("solicitado")
+  email               String?
+  telefone            String?
+  observacao          String?
+  created_date        DateTime? @db.Timestamp(6)
+  updated_date        DateTime? @db.Timestamp(6)
+  created_by_id       String?
+  created_by          String?
+  is_sample           Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ControleOS {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()"))
+  empreendimento_id       String?
+  os                      String?
+  gestao                  String?
+  formalizacao            String?
+  cronograma              String?   @default("NA")
+  markup                  String?   @default("NA")
+  abertura_os_servidor    String?   @default("NA")
+  atividades_planejamento String?   @default("NA")
+  kickoff_cliente         String?   @default("NA")
+  art_ee_ais              String?   @default("NA")
+  art_hid_in              String?   @default("NA")
+  art_hvac                String?   @default("NA")
+  art_bomb                String?   @default("NA")
+  conc_telefonia          String?   @default("NA")
+  conc_gas                String?   @default("NA")
+  conc_eletrica           String?   @default("NA")
+  conc_hidraulica         String?   @default("NA")
+  conc_agua_pluvial       String?   @default("NA")
+  conc_incendio           String?   @default("NA")
+  atividades_vinculadas   Json?
+  planejamento            Json?
+  markup_status           String?   @default("NA")
+  monitoramento           Json?
+  avanco                  Json?
+  observacoes             String?
+  created_date            DateTime? @db.Timestamp(6)
+  updated_date            DateTime? @db.Timestamp(6)
+  created_by_id           String?
+  created_by              String?
+  is_sample               Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model DataCadastro {
+  id                String    @id @default(dbgenerated("gen_random_uuid()"))
+  empreendimento_id String?
+  ordem             Decimal?  @db.Decimal
+  documento_id      String?
+  datas             Json?
+  created_date      DateTime? @db.Timestamp(6)
+  updated_date      DateTime? @db.Timestamp(6)
+  created_by_id     String?
+  created_by        String?
+  is_sample         Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Documento {
+  id                               String    @id @default(dbgenerated("gen_random_uuid()"))
+  numero                           String?
+  arquivo                          String?
+  descritivo                       String?
+  area                             String?
+  pavimento_id                     String?
+  disciplina                       String?
+  disciplinas                      Json?
+  subdisciplinas                   Json?
+  escala                           Decimal?  @db.Decimal
+  fator_dificuldade                Decimal?  @db.Decimal
+  empreendimento_id                String?
+  tempo_total                      Decimal?  @db.Decimal
+  tempo_estudo_preliminar          Decimal?  @db.Decimal
+  tempo_ante_projeto               Decimal?  @db.Decimal
+  tempo_projeto_basico             Decimal?  @db.Decimal
+  tempo_projeto_executivo          Decimal?  @db.Decimal
+  tempo_liberado_obra              Decimal?  @db.Decimal
+  tempo_concepcao                  Decimal?  @db.Decimal
+  tempo_planejamento               Decimal?  @db.Decimal
+  tempo_pre                        Decimal?  @db.Decimal
+  etapas_adicionais_pre            Json?
+  tempo_execucao_total             Decimal?  @db.Decimal
+  tempo_execucao_estudo_preliminar Decimal?  @db.Decimal
+  tempo_execucao_ante_projeto      Decimal?  @db.Decimal
+  tempo_execucao_projeto_basico    Decimal?  @db.Decimal
+  tempo_execucao_projeto_executivo Decimal?  @db.Decimal
+  tempo_execucao_liberado_obra     Decimal?  @db.Decimal
+  tempo_execucao_concepcao         Decimal?  @db.Decimal
+  tempo_execucao_planejamento      Decimal?  @db.Decimal
+  predecessora_id                  String?
+  inicio_planejado                 String?
+  termino_planejado                String?
+  multiplos_executores             Boolean?
+  executor_principal               String?
+  created_date                     DateTime? @db.Timestamp(6)
+  updated_date                     DateTime? @db.Timestamp(6)
+  created_by_id                    String?
+  created_by                       String?
+  is_sample                        Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Empreendimento {
+  id                            String    @id @default(dbgenerated("gen_random_uuid()"))
+  nome                          String?
+  cliente                       String?
+  foto_url                      String?
+  endereco                      String?
+  os                            String?
+  num_proposta                  String?
+  status                        String?   @default("em_planejamento")
+  etapas                        Json?
+  tipo_empreendimento_checklist String?
+  disciplinas_checklist         Json?
+  created_date                  DateTime? @db.Timestamp(6)
+  updated_date                  DateTime? @db.Timestamp(6)
+  created_by_id                 String?
+  created_by                    String?
+  is_sample                     Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Equipe {
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  nome          String?
+  cor           String?
+  descricao     String?
+  created_date  DateTime? @db.Timestamp(6)
+  updated_date  DateTime? @db.Timestamp(6)
+  created_by_id String?
+  created_by    String?
+  is_sample     Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Execucao {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()"))
+  planejamento_id         String?
+  descritivo              String?
+  empreendimento_id       String?
+  usuario                 String?
+  usuario_ajudado         String?
+  observacao              String?
+  status                  String?   @default("Em andamento")
+  inicio                  String?
+  termino                 String?
+  tempo_total             Decimal?  @db.Decimal
+  pausado_automaticamente Boolean?
+  created_date            DateTime? @db.Timestamp(6)
+  updated_date            DateTime? @db.Timestamp(6)
+  created_by_id           String?
+  created_by              String?
+  is_sample               Boolean?  @default(false)
+  analitico_id            String?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ItemPRE {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()"))
+  empreendimento_id          String?
+  item                       String?
+  data                       String?
+  de                         String?
+  descritiva                 String?
+  localizacao                String?
+  assunto                    String?
+  comentario                 String?
+  disciplina                 String?
+  status                     String?   @default("Em andamento")
+  resposta                   String?
+  imagens                    Json?
+  tempo_atendimento          Decimal?  @db.Decimal
+  documentos_vinculados      Json?
+  etapa_adicional            String?
+  planejamento_executor      String?
+  planejamento_executor_nome String?
+  created_date               DateTime? @db.Timestamp(6)
+  updated_date               DateTime? @db.Timestamp(6)
+  created_by_id              String?
+  created_by                 String?
+  is_sample                  Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model NotificacaoAtividade {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  usuario_email       String?
+  atividade_funcao_id String?
+  atividade_nome      String?
+  tempo_estimado      Decimal?  @db.Decimal
+  status              String?   @default("pendente")
+  data_notificacao    String?
+  data_agendada       String?
+  planejamento_id     String?
+  created_date        DateTime? @db.Timestamp(6)
+  updated_date        DateTime? @db.Timestamp(6)
+  created_by_id       String?
+  created_by          String?
+  is_sample           Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model OSManual {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()"))
+  usuario_email       String?
+  data                String?
+  os                  String?
+  empreendimento_nome String?
+  cor                 String?
+  created_date        DateTime? @db.Timestamp(6)
+  updated_date        DateTime? @db.Timestamp(6)
+  created_by_id       String?
+  created_by          String?
+  is_sample           Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Pavimento {
+  id                String    @id @default(dbgenerated("gen_random_uuid()"))
+  nome              String?
+  area              Decimal?  @db.Decimal
+  escala            String?
+  empreendimento_id String?
+  created_date      DateTime? @db.Timestamp(6)
+  updated_date      DateTime? @db.Timestamp(6)
+  created_by_id     String?
+  created_by        String?
+  is_sample         Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model PlanejamentoAtividade {
+  id                       String    @id @default(dbgenerated("gen_random_uuid()"))
+  descritivo               String?
+  base_descritivo          String?
+  documento_id             String?
+  atividade_id             String?
+  empreendimento_id        String?
+  etapa                    String?
+  executores               Json?
+  executor_principal       String?
+  predecessora_id          String?
+  tempo_planejado          Decimal?  @db.Decimal
+  inicio_planejado         String?
+  termino_planejado        String?
+  horario_inicio           String?
+  horario_termino          String?
+  sobra_planejada          Decimal?  @db.Decimal
+  inicio_ajustado          String?
+  termino_ajustado         String?
+  sobra_ajustada           Decimal?  @db.Decimal
+  inicio_real              String?
+  termino_real             String?
+  sobra_real               Decimal?  @db.Decimal
+  tempo_executado          Decimal?  @db.Decimal
+  status                   String?   @default("nao_iniciado")
+  semana_ano               String?
+  prioridade               Decimal?  @db.Decimal
+  ordem                    Decimal?  @db.Decimal
+  ordem_por_dia            Json?
+  horas_por_dia            Json?
+  horas_executadas_por_dia Json?
+  created_date             DateTime? @db.Timestamp(6)
+  updated_date             DateTime? @db.Timestamp(6)
+  created_by_id            String?
+  created_by               String?
+  is_sample                Boolean?  @default(false)
+  travado                  String?
+  is_routine               String?
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model PlanejamentoDocumento {
+  id                       String    @id @default(dbgenerated("gen_random_uuid()"))
+  descritivo               String?
+  documento_id             String?
+  empreendimento_id        String?
+  etapa                    String?
+  executores               Json?
+  executor_principal       String?
+  predecessora_id          String?
+  tempo_planejado          Decimal?  @db.Decimal
+  inicio_planejado         String?
+  termino_planejado        String?
+  horario_inicio           String?
+  horario_termino          String?
+  sobra_planejada          Decimal?  @db.Decimal
+  inicio_ajustado          String?
+  termino_ajustado         String?
+  sobra_ajustada           Decimal?  @db.Decimal
+  inicio_real              String?
+  termino_real             String?
+  sobra_real               Decimal?  @db.Decimal
+  tempo_executado          Decimal?  @db.Decimal
+  status                   String?   @default("nao_iniciado")
+  semana_ano               String?
+  prioridade               Decimal?  @db.Decimal
+  ordem                    Decimal?  @db.Decimal
+  ordem_por_dia            Json?
+  horas_por_dia            Json?
+  horas_executadas_por_dia Json?
+  multiplos_executores     Boolean?
+  created_date             DateTime? @db.Timestamp(6)
+  updated_date             DateTime? @db.Timestamp(6)
+  created_by_id            String?
+  created_by               String?
+  is_sample                Boolean?  @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model SobraUsuario {
+  id                String    @id @default(dbgenerated("gen_random_uuid()"))
+  usuario           String?
+  empreendimento_id String?
+  horas_sobra       Decimal?  @db.Decimal
+  created_date      DateTime? @db.Timestamp(6)
+  updated_date      DateTime? @db.Timestamp(6)
+  created_by_id     String?
+  created_by        String?
+  is_sample         Boolean?  @default(false)
 }

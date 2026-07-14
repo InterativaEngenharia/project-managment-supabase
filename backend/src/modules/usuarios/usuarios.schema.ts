@@ -14,10 +14,13 @@ export const perfilEnum = z.enum([
   'admin'
 ]);
 
+// Aceita string, null (EquipesManager.jsx manda null pra "remover da equipe")
+// ou "" (AlocacaoEquipeTab.jsx manda "" no mesmo caso) - ambos viram null.
 const equipeIdField = z
   .string()
+  .nullable()
   .optional()
-  .transform((v) => (v === '' ? null : v));
+  .transform((v) => (v === '' || v === null ? null : v));
 
 export const createUsuarioSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
