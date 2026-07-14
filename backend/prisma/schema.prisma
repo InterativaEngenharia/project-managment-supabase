@@ -26,7 +26,12 @@ model Disciplina {
 model Usuario {
   id                             String    @id @default(dbgenerated("gen_random_uuid()"))
   nome                           String?
-  email                          String?
+  // UNIQUE adicionada nesta migração - havia 2 linhas duplicadas (mesmo
+  // e-mail, "Cirlene Benvindo") causando resultado não-determinístico em
+  // toda consulta que busca usuário por e-mail (login, RLS via
+  // current_user_role(), authMiddleware do backend). Resolvido mantendo a
+  // linha correta e apagando o duplicado antes de aplicar a constraint.
+  email                          String?   @unique
   email_notificacao              String?
   cargo                          String?
   departamento                   String?
