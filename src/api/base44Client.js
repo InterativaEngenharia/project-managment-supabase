@@ -8,6 +8,11 @@ import { apiPlanejamentoAtividade } from '@/services/apiPlanejamentoAtividade';
 import { apiPlanejamentoDocumento } from '@/services/apiPlanejamentoDocumento';
 import { createGenericApiEntity } from '@/services/genericApiEntity';
 import { apiAnalitico } from '@/services/apiAnalitico';
+import { apiComercial } from '@/services/apiComercial';
+import { apiControleOS } from '@/services/apiControleOS';
+import { apiDisciplina } from '@/services/apiDisciplina';
+import { apiDocumento } from '@/services/apiDocumento';
+import { apiEmpreendimento } from '@/services/apiEmpreendimento';
 
 // -----------------------------------------------------------------------
 // 1) ENTIDADES (banco de dados)
@@ -22,11 +27,6 @@ const ENTITY_NAMES = [
   // `prisma db pull`), então nem entityFactory funcionaria pra elas -
   // deixadas como estavam, sem tentar migrar algo que não existe.
   'AtividadesDoProjeto',
-  'Comercial',
-  'ControleOS',
-  'Disciplina',
-  'Documento',
-  'Empreendimento',
   'Escopo',
   'HistoricoAtividade',
 ];
@@ -60,6 +60,15 @@ entities.ItemPRE = createGenericApiEntity('itens-pre');
 entities.NotificacaoAtividade = createGenericApiEntity('notificacoes-atividade');
 entities.OSManual = createGenericApiEntity('os-manuais');
 entities.Analitico = apiAnalitico;
+// Comercial/ControleOS/Disciplina/Documento/Empreendimento: os módulos do
+// backend já existiam desde a Fase 2, mas nada aqui apontava pra eles ainda
+// - continuavam indo direto no Postgres com a anon key (só protegidos pelas
+// policies de RLS, nunca pelo backend). Ver backend/PERMISSOES.md.
+entities.Comercial = apiComercial;
+entities.ControleOS = apiControleOS;
+entities.Disciplina = apiDisciplina;
+entities.Documento = apiDocumento;
+entities.Empreendimento = apiEmpreendimento;
 
 // -----------------------------------------------------------------------
 // 2) AUTENTICAÇÃO (substitui base44.auth)

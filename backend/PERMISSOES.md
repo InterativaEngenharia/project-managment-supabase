@@ -51,12 +51,12 @@ R = leitura, W = escrita (create/update/delete).
 
 | Entidade | Read | Write | Status da migração |
 |---|---|---|---|
-| Disciplina | Todos | admin + lider | ✅ migrado (backend/src/modules/disciplinas) |
+| Disciplina | Todos | admin + lider | ✅ migrado (backend/src/modules/disciplinas) - mesma ressalva de frontend do bloco Comercial/ControleOS/Documento/Empreendimento abaixo |
 | Usuario | Todos | admin + lider + direcao | ✅ migrado (backend/src/modules/usuarios) |
-| Empreendimento | Todos | criador + admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/empreendimento) |
-| Comercial | Todos | admin + lider + direcao + gestao | ✅ migrado (backend/src/modules/comercial) |
-| ControleOS | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/controleos) - sem regra customizada no Base44 original, decisão do usuário foi usar o mesmo limiar do Empreendimento (coordenador+, sem cláusula de dono) |
-| Documento | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/documento) - mesma decisão acima |
+| Empreendimento | Todos | criador + admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/empreendimento) - frontend só foi de fato trocado pra usar o backend depois do deploy (ver nota abaixo), até então `base44.entities.Empreendimento` ia direto no Postgres |
+| Comercial | Todos | admin + lider + direcao + gestao | ✅ migrado (backend/src/modules/comercial) - mesma ressalva acima |
+| ControleOS | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/controleos) - sem regra customizada no Base44 original, decisão do usuário foi usar o mesmo limiar do Empreendimento (coordenador+, sem cláusula de dono); mesma ressalva acima |
+| Documento | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/documento) - mesma decisão e ressalva acima |
 | Equipe | Todos | admin + lider + direcao | ✅ migrado (backend/src/modules/equipe) - não é corte de hierarquia limpo, gestao fica de fora de propósito |
 | Pavimento | Todos (decisão do usuário) | criador + admin + lider+ | ✅ migrado (backend/src/modules/pavimento) - jsonc original usava chave "role" (não "perfil") pra leitura, que não corresponde a nenhuma coluna real; tratado como leitura aberta |
 | SobraUsuario | Todos (decisão do usuário) | Todos (decisão do usuário) | ✅ migrado (backend/src/modules/sobrausuario) - jsonc dizia "admin apenas" pros dois, mas a feature real (aba Sobras em Planejamento) não tem nenhuma trava de perfil hoje; restringir quebraria o uso atual, então ficou aberto |
@@ -65,6 +65,23 @@ R = leitura, W = escrita (create/update/delete).
 | AlteracaoEtapa, AtaReuniao, Atividade, AtividadeFuncao, AtividadeGenerica, AtividadesEmpreendimento, ChecklistItem, ChecklistPlanejamento, DataCadastro, Execucao, ItemPRE, NotificacaoAtividade, OSManual | Todos | Todos | ✅ migradas (backend/src/modules/generic + shared/genericCrudModule.ts) - confirmado, uma por uma, que nenhuma tela que as usa tem trava de perfil hoje (mesmo padrão do SobraUsuario); decisão do usuário foi manter aberto por padrão pra essa cauda longa, só restringindo se aparecer evidência específica em contrário |
 | Analitico | Todos | somente leitura | ✅ migrado (backend/src/modules/analitico) - nenhum `.create/.update/.delete` no código hoje, tabela populada por fora do app |
 | AtividadesDoProjeto, Escopo, HistoricoAtividade | - | - | ⚠️ não migradas - essas 3 tabelas não existem no Supabase hoje (confirmado via `prisma db pull`); as telas que as chamam (historicoUtils.jsx, AnaliticoGlobalTab.jsx, HistoricoGeralTab.jsx) já falham independente desta migração |
+
+### Nota: frontend desses 5 (Comercial/ControleOS/Disciplina/Documento/Empreendimento) só foi trocado depois do deploy
+
+Os módulos do backend pra essas 5 entidades existiam desde a Fase 2, e as
+RLS policies do banco já aplicavam a regra certa (conferido ao vivo antes de
+mexer: cada uma tinha exatamente a policy `has_role()` documentada acima).
+Mas o frontend nunca tinha sido de fato trocado - `entities/all.js` e
+`base44Client.js` continuavam apontando `Comercial`/`ControleOS`/
+`Disciplina`/`Documento`/`Empreendimento` pro `entityFactory.js` (acesso
+direto ao Postgres com a anon key), só protegido pelas RLS policies, nunca
+passando pelo backend. Não era uma falha ativa (RLS já barrava certo), mas
+contrariava o objetivo original de "tudo passa pelo backend". Criados
+`src/services/api{Comercial,ControleOS,Disciplina,Documento,Empreendimento}.js`
+(mesmo padrão dos outros serviços) e trocada a referência tanto em
+`entities/all.js` quanto dentro do próprio objeto `entities` em
+`base44Client.js` (esse último era necessário porque várias telas chamam
+`base44.entities.X` direto em vez de importar de `@/entities/all`).
 
 ### Nota sobre discrepâncias encontradas entre o jsonc e o banco (Fase 2)
 

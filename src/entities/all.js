@@ -14,6 +14,11 @@ import { apiPlanejamentoAtividade } from '@/services/apiPlanejamentoAtividade';
 import { apiPlanejamentoDocumento } from '@/services/apiPlanejamentoDocumento';
 import { createGenericApiEntity } from '@/services/genericApiEntity';
 import { apiAnalitico } from '@/services/apiAnalitico';
+import { apiComercial } from '@/services/apiComercial';
+import { apiControleOS } from '@/services/apiControleOS';
+import { apiDisciplina } from '@/services/apiDisciplina';
+import { apiDocumento } from '@/services/apiDocumento';
+import { apiEmpreendimento } from '@/services/apiEmpreendimento';
 
 // Entidades sem regra de permissão própria - CRUD aberto, só passam pelo
 // backend em vez de acesso direto (ver backend/PERMISSOES.md).
@@ -40,11 +45,15 @@ export const AtividadesDoProjeto = base44.entities.AtividadesDoProjeto;
 export const Escopo = base44.entities.Escopo;
 export const HistoricoAtividade = base44.entities.HistoricoAtividade;
 
-export const Comercial = base44.entities.Comercial;
-export const ControleOS = base44.entities.ControleOS;
-export const Disciplina = base44.entities.Disciplina;
-export const Documento = base44.entities.Documento;
-export const Empreendimento = base44.entities.Empreendimento;
+// Comercial/ControleOS/Disciplina/Documento/Empreendimento passam pelo
+// backend - os módulos já existiam desde a Fase 2, mas o frontend nunca
+// tinha sido trocado de fato pra usá-los (continuava lendo/escrevendo
+// direto no Postgres com a anon key, só protegido pelas policies de RLS).
+export const Comercial = apiComercial;
+export const ControleOS = apiControleOS;
+export const Disciplina = apiDisciplina;
+export const Documento = apiDocumento;
+export const Empreendimento = apiEmpreendimento;
 // Equipe/Pavimento/SobraUsuario passam pelo backend - ver src/services/.
 export const Equipe = apiEquipe;
 export const Pavimento = apiPavimento;
