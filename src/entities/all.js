@@ -10,6 +10,8 @@ import { apiUsuarios } from '@/services/apiUsuarios';
 import { apiEquipe } from '@/services/apiEquipe';
 import { apiPavimento } from '@/services/apiPavimento';
 import { apiSobraUsuario } from '@/services/apiSobraUsuario';
+import { apiPlanejamentoAtividade } from '@/services/apiPlanejamentoAtividade';
+import { apiPlanejamentoDocumento } from '@/services/apiPlanejamentoDocumento';
 
 export const AlteracaoEtapa = base44.entities.AlteracaoEtapa;
 export const AtaReuniao = base44.entities.AtaReuniao;
@@ -35,8 +37,8 @@ export const ItemPRE = base44.entities.ItemPRE;
 export const NotificacaoAtividade = base44.entities.NotificacaoAtividade;
 export const OSManual = base44.entities.OSManual;
 export const Pavimento = apiPavimento;
-export const PlanejamentoAtividade = base44.entities.PlanejamentoAtividade;
-export const PlanejamentoDocumento = base44.entities.PlanejamentoDocumento;
+export const PlanejamentoAtividade = apiPlanejamentoAtividade;
+export const PlanejamentoDocumento = apiPlanejamentoDocumento;
 export const SobraUsuario = apiSobraUsuario;
 // Usuario passa pelo backend (não mais leitura/escrita direta no Postgres
 // com a anon key) - ver src/services/apiUsuarios.js.

@@ -53,3 +53,31 @@ export function podeEditarRecurso(
   if (temNivelMinimo(user.perfil, nivelMinimo)) return true;
   return registroExistente.created_by === user.email;
 }
+
+function emailIgual(a: string | null | undefined, b: string | null | undefined): boolean {
+  return !!a && !!b && a.toLowerCase() === b.toLowerCase();
+}
+
+/**
+ * Regra do PlanejamentoAtividade/PlanejamentoDocumento no Base44 original:
+ * coordenador+ sempre pode; quem criou o registro ou é o executor_principal
+ * também pode; e (só pra leitura/atualização, não pra exclusão) qualquer
+ * um listado no array `executores` também pode. Espelha exatamente as
+ * policies `planejamentoatividade_select/update/delete` já existentes no
+ * Supabase (ver backend/PERMISSOES.md).
+ */
+export function podeAcessarPlanejamento(
+  user: { perfil: string; email: string },
+  registro: { executor_principal?: string | null; created_by?: string | null; executores?: unknown },
+  opcoes: { considerarExecutores?: boolean } = {}
+): boolean {
+  if (temNivelMinimo(user.perfil, 'coordenador')) return true;
+  if (emailIgual(registro.executor_principal, user.email)) return true;
+  if (emailIgual(registro.created_by, user.email)) return true;
+
+  if (opcoes.considerarExecutores && Array.isArray(registro.executores)) {
+    return registro.executores.some((e) => typeof e === 'string' && emailIgual(e, user.email));
+  }
+
+  return false;
+}
