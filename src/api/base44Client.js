@@ -139,6 +139,15 @@ export const auth = {
 // -----------------------------------------------------------------------
 const UPLOAD_BUCKET = 'uploads';
 
+// Tipos realmente usados hoje pelas telas que chamam UploadFile (fotos de
+// capa do Empreendimento, comprovantes/fotos do PRE) - ver EmpreendimentoForm.jsx
+// e PRETab.jsx/PRE.jsx/PREItemRow.jsx. O bucket é público e aceita upload de
+// qualquer autenticado, então isso evita que alguém suba um .html/.svg com
+// script (serve como XSS/phishing quando aberto direto pela URL pública) ou
+// um arquivo enorme.
+const UPLOAD_TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+const UPLOAD_TAMANHO_MAXIMO = 20 * 1024 * 1024; // 20MB - cobre fotos e PDFs escaneados
+
 export const Core = {
   /**
    * Core.UploadFile({ file }) → { file_url }
@@ -148,10 +157,17 @@ export const Core = {
    */
   async UploadFile({ file }) {
     if (!file) throw new Error('UploadFile: nenhum arquivo foi informado');
-    const path = `${Date.now()}_${file.name}`.replace(/\s+/g, '_');
+    if (!UPLOAD_TIPOS_PERMITIDOS.includes(file.type)) {
+      throw new Error('UploadFile: tipo de arquivo não permitido (só imagens ou PDF)');
+    }
+    if (file.size > UPLOAD_TAMANHO_MAXIMO) {
+      throw new Error('UploadFile: arquivo maior que o limite de 20MB');
+    }
+    const nomeSanitizado = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${Date.now()}_${nomeSanitizado}`;
     const { error } = await supabase.storage
       .from(UPLOAD_BUCKET)
-      .upload(path, file, { upsert: false });
+      .upload(path, file, { upsert: false, contentType: file.type });
     if (error) throw new Error(`[UploadFile] ${error.message}`);
     const { data } = supabase.storage.from(UPLOAD_BUCKET).getPublicUrl(path);
     return { file_url: data.publicUrl };
