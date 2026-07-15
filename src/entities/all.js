@@ -7,6 +7,9 @@
 
 import { base44 } from '@/api/base44Client';
 import { apiUsuarios } from '@/services/apiUsuarios';
+import { apiEquipe } from '@/services/apiEquipe';
+import { apiPavimento } from '@/services/apiPavimento';
+import { apiSobraUsuario } from '@/services/apiSobraUsuario';
 
 export const AlteracaoEtapa = base44.entities.AlteracaoEtapa;
 export const AtaReuniao = base44.entities.AtaReuniao;
@@ -23,17 +26,18 @@ export const DataCadastro = base44.entities.DataCadastro;
 export const Disciplina = base44.entities.Disciplina;
 export const Documento = base44.entities.Documento;
 export const Empreendimento = base44.entities.Empreendimento;
-export const Equipe = base44.entities.Equipe;
+// Equipe/Pavimento/SobraUsuario passam pelo backend - ver src/services/.
+export const Equipe = apiEquipe;
 export const Escopo = base44.entities.Escopo;
 export const Execucao = base44.entities.Execucao;
 export const HistoricoAtividade = base44.entities.HistoricoAtividade;
 export const ItemPRE = base44.entities.ItemPRE;
 export const NotificacaoAtividade = base44.entities.NotificacaoAtividade;
 export const OSManual = base44.entities.OSManual;
-export const Pavimento = base44.entities.Pavimento;
+export const Pavimento = apiPavimento;
 export const PlanejamentoAtividade = base44.entities.PlanejamentoAtividade;
 export const PlanejamentoDocumento = base44.entities.PlanejamentoDocumento;
-export const SobraUsuario = base44.entities.SobraUsuario;
+export const SobraUsuario = apiSobraUsuario;
 // Usuario passa pelo backend (não mais leitura/escrita direta no Postgres
 // com a anon key) - ver src/services/apiUsuarios.js.
 export const Usuario = apiUsuarios;

@@ -80,11 +80,17 @@ import { comercialRoutes } from './modules/comercial/comercial.routes';
 import { controleOSRoutes } from './modules/controleos/controleos.routes';
 import { empreendimentoRoutes } from './modules/empreendimento/empreendimento.routes';
 import { documentoRoutes } from './modules/documento/documento.routes';
+import { equipeRoutes } from './modules/equipe/equipe.routes';
+import { pavimentoRoutes } from './modules/pavimento/pavimento.routes';
+import { sobraUsuarioRoutes } from './modules/sobrausuario/sobrausuario.routes';
 fastify.register(disciplinasRoutes, { prefix: '/api' });
 fastify.register(usuariosRoutes, { prefix: '/api' });
 fastify.register(comercialRoutes, { prefix: '/api' });
 fastify.register(controleOSRoutes, { prefix: '/api' });
 fastify.register(empreendimentoRoutes, { prefix: '/api' });
 fastify.register(documentoRoutes, { prefix: '/api' });
+fastify.register(equipeRoutes, { prefix: '/api' });
+fastify.register(pavimentoRoutes, { prefix: '/api' });
+fastify.register(sobraUsuarioRoutes, { prefix: '/api' });
 
 export default fastify;

@@ -57,9 +57,9 @@ R = leitura, W = escrita (create/update/delete).
 | Comercial | Todos | admin + lider + direcao + gestao | ✅ migrado (backend/src/modules/comercial) |
 | ControleOS | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/controleos) - sem regra customizada no Base44 original, decisão do usuário foi usar o mesmo limiar do Empreendimento (coordenador+, sem cláusula de dono) |
 | Documento | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/documento) - mesma decisão acima |
-| Equipe | Todos | admin + lider + direcao | pendente |
-| Pavimento | admin + lider + user | criador + admin + lider | pendente |
-| SobraUsuario | admin apenas | admin apenas | pendente |
+| Equipe | Todos | admin + lider + direcao | ✅ migrado (backend/src/modules/equipe) - não é corte de hierarquia limpo, gestao fica de fora de propósito |
+| Pavimento | Todos (decisão do usuário) | criador + admin + lider+ | ✅ migrado (backend/src/modules/pavimento) - jsonc original usava chave "role" (não "perfil") pra leitura, que não corresponde a nenhuma coluna real; tratado como leitura aberta |
+| SobraUsuario | Todos (decisão do usuário) | Todos (decisão do usuário) | ✅ migrado (backend/src/modules/sobrausuario) - jsonc dizia "admin apenas" pros dois, mas a feature real (aba Sobras em Planejamento) não tem nenhuma trava de perfil hoje; restringir quebraria o uso atual, então ficou aberto |
 | PlanejamentoAtividade | executor próprio + admin/lider/coordenador/gestao/direcao | mesmo que leitura | pendente - regra por executor, ver abaixo |
 | PlanejamentoDocumento | Todos | executor próprio + admin/lider/coordenador/gestao/direcao | pendente - regra por executor, ver abaixo |
 | ChecklistItem, Atividade, Execucao, ItemPRE, AtaReuniao, e demais sem RLS customizada listada | - | - | padrão da plataforma original: criador lê/edita os próprios registros, admin tem acesso total - revalidar regra exata ao migrar cada uma |

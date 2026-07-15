@@ -1,6 +1,9 @@
 import { supabase } from '@/lib/supabaseClient';
 import { createEntity } from './entityFactory';
 import { apiUsuarios } from '@/services/apiUsuarios';
+import { apiEquipe } from '@/services/apiEquipe';
+import { apiPavimento } from '@/services/apiPavimento';
+import { apiSobraUsuario } from '@/services/apiSobraUsuario';
 
 // -----------------------------------------------------------------------
 // 1) ENTIDADES (banco de dados)
@@ -25,29 +28,29 @@ const ENTITY_NAMES = [
   'Disciplina',
   'Documento',
   'Empreendimento',
-  'Equipe',
   'Escopo',
   'Execucao',
   'HistoricoAtividade',
   'ItemPRE',
   'NotificacaoAtividade',
   'OSManual',
-  'Pavimento',
   'PlanejamentoAtividade',
   'PlanejamentoDocumento',
-  'SobraUsuario',
   'Analitico', // ⚠️ ver nota acima
 ];
-// "Usuario" foi retirada de ENTITY_NAMES de propósito: é a tabela que define
-// perfil/permissão de cada usuário, então não pode mais ser lida/escrita
-// direto no Postgres com a anon key (isso é o que permitia um usuário comum
-// se autopromover editando o próprio registro). Ela passa pelo backend -
-// ver src/services/apiUsuarios.js.
+// "Usuario", "Equipe", "Pavimento" e "SobraUsuario" foram retiradas de
+// ENTITY_NAMES de propósito - já migradas para o backend (ver
+// src/services/api*.js). Usuario em particular não pode mais ser lida/
+// escrita direto no Postgres com a anon key (isso é o que permitia um
+// usuário comum se autopromover editando o próprio registro).
 
 const entities = Object.fromEntries(
   ENTITY_NAMES.map((name) => [name, createEntity(name)])
 );
 entities.Usuario = apiUsuarios;
+entities.Equipe = apiEquipe;
+entities.Pavimento = apiPavimento;
+entities.SobraUsuario = apiSobraUsuario;
 
 // -----------------------------------------------------------------------
 // 2) AUTENTICAÇÃO (substitui base44.auth)
