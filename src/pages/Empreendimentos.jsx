@@ -123,7 +123,7 @@ export default function EmpreendimentosPage() {
     isRefreshing,
     loadData 
   } = useEmpreendimentosData();
-  const { user } = useContext(ActivityTimerContext); // NOVO: Obter o usuário logado do contexto
+  const { user, perfilAtual, isAdmin } = useContext(ActivityTimerContext);
 
   const [showForm, setShowForm] = useState(false);
   const [editingEmpreendimento, setEditingEmpreendimento] = useState(null);
@@ -430,9 +430,11 @@ export default function EmpreendimentosPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <EmpreendimentoCard 
+                    <EmpreendimentoCard
                       empreendimento={empreendimento}
-                      user={user} // NOVO: Passar o usuário para o card
+                      user={user}
+                      perfilAtual={perfilAtual}
+                      isAdmin={isAdmin}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
                     />

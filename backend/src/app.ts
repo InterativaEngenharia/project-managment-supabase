@@ -76,7 +76,15 @@ fastify.setErrorHandler(errorHandler);
 // Rotas
 import { disciplinasRoutes } from './modules/disciplinas/disciplinas.routes';
 import { usuariosRoutes } from './modules/usuarios/usuarios.routes';
+import { comercialRoutes } from './modules/comercial/comercial.routes';
+import { controleOSRoutes } from './modules/controleos/controleos.routes';
+import { empreendimentoRoutes } from './modules/empreendimento/empreendimento.routes';
+import { documentoRoutes } from './modules/documento/documento.routes';
 fastify.register(disciplinasRoutes, { prefix: '/api' });
 fastify.register(usuariosRoutes, { prefix: '/api' });
+fastify.register(comercialRoutes, { prefix: '/api' });
+fastify.register(controleOSRoutes, { prefix: '/api' });
+fastify.register(empreendimentoRoutes, { prefix: '/api' });
+fastify.register(documentoRoutes, { prefix: '/api' });
 
 export default fastify;

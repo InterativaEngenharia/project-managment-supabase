@@ -38,3 +38,18 @@ export function podeAtribuirPerfil(perfilDeQuemEdita: string | null | undefined,
   if (perfilDeQuemEdita === 'lider') return PERFIS_ATRIBUIVEIS_POR_LIDER.includes(perfilAlvo);
   return false;
 }
+
+/**
+ * Regra do Empreendimento no Base44 original: quem criou o registro pode
+ * editar/excluir mesmo sem ter o nível mínimo de perfil (ex: um colaborador
+ * comum edita o empreendimento que ele mesmo criou). Genérico o bastante
+ * pra reaproveitar em qualquer entidade com essa mesma regra de dono.
+ */
+export function podeEditarRecurso(
+  user: { perfil: string; email: string },
+  registroExistente: { created_by?: string | null },
+  nivelMinimo: keyof typeof PERFIS_HIERARQUIA
+): boolean {
+  if (temNivelMinimo(user.perfil, nivelMinimo)) return true;
+  return registroExistente.created_by === user.email;
+}

@@ -53,14 +53,33 @@ R = leitura, W = escrita (create/update/delete).
 |---|---|---|---|
 | Disciplina | Todos | admin + lider | ✅ migrado (backend/src/modules/disciplinas) |
 | Usuario | Todos | admin + lider + direcao | ✅ migrado (backend/src/modules/usuarios) |
-| Empreendimento | Todos | criador + admin + lider + coordenador + gestao + direcao | pendente |
-| Comercial | Todos | admin + lider + direcao + gestao | pendente |
+| Empreendimento | Todos | criador + admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/empreendimento) |
+| Comercial | Todos | admin + lider + direcao + gestao | ✅ migrado (backend/src/modules/comercial) |
+| ControleOS | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/controleos) - sem regra customizada no Base44 original, decisão do usuário foi usar o mesmo limiar do Empreendimento (coordenador+, sem cláusula de dono) |
+| Documento | Todos | admin + lider + coordenador + gestao + direcao | ✅ migrado (backend/src/modules/documento) - mesma decisão acima |
 | Equipe | Todos | admin + lider + direcao | pendente |
 | Pavimento | admin + lider + user | criador + admin + lider | pendente |
 | SobraUsuario | admin apenas | admin apenas | pendente |
 | PlanejamentoAtividade | executor próprio + admin/lider/coordenador/gestao/direcao | mesmo que leitura | pendente - regra por executor, ver abaixo |
 | PlanejamentoDocumento | Todos | executor próprio + admin/lider/coordenador/gestao/direcao | pendente - regra por executor, ver abaixo |
-| ChecklistItem, Documento, Atividade, Execucao, ItemPRE, AtaReuniao, e demais sem RLS customizada listada | - | - | padrão da plataforma original: criador lê/edita os próprios registros, admin tem acesso total - revalidar regra exata ao migrar cada uma |
+| ChecklistItem, Atividade, Execucao, ItemPRE, AtaReuniao, e demais sem RLS customizada listada | - | - | padrão da plataforma original: criador lê/edita os próprios registros, admin tem acesso total - revalidar regra exata ao migrar cada uma |
+
+### Nota sobre discrepâncias encontradas entre o jsonc e o banco (Fase 2)
+
+Ao migrar Comercial e Empreendimento, as policies `has_role()` que já existiam
+no Supabase (criadas antes desta migração, provavelmente numa tentativa
+anterior de replicar as regras do Base44) estavam incompletas:
+- `Comercial`: faltava `lider` na lista de perfis que podem escrever.
+- `Empreendimento`: faltava a cláusula "ou é quem criou o registro" no
+  insert/update, e faltava `coordenador` na policy de delete (só insert/update
+  tinham).
+
+O usuário confirmou seguir o jsonc original nos dois casos - as policies
+foram recriadas corretamente. Ao migrar os módulos restantes, sempre
+comparar a policy viva no banco (`select * from pg_policies where
+tablename = '...'`) contra o `.jsonc` original (recuperável via
+`git show <commit-antes-da-remoção>:base44/entities/<Nome>.jsonc`) antes de
+confiar em qualquer um dos dois isoladamente.
 
 ### Regra granular de PlanejamentoAtividade / PlanejamentoDocumento
 

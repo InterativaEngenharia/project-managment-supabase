@@ -29,17 +29,19 @@ const statusLabels = {
   pausado: "Pausado"
 };
 
-function EmpreendimentoCard({ empreendimento, user, onEdit, onDelete }) {
-  // Debug: Log user permissions
-  console.log('EmpreendimentoCard - User:', user);
-  console.log('EmpreendimentoCard - User role:', user?.role);
-  console.log('EmpreendimentoCard - User perfil:', user?.perfil);
+// Perfis com nível coordenador+ podem editar/excluir qualquer empreendimento;
+// quem não tem esse nível só pode mexer no que ele mesmo criou (mesma regra
+// aplicada no backend/RLS - ver backend/PERMISSOES.md e
+// empreendimento.controller.ts). Isso é só UX (esconder o que vai falhar);
+// a permissão de verdade é sempre validada no servidor.
+const PERFIS_COORDENADOR_OU_ACIMA = ['coordenador', 'lider', 'gestao', 'direcao'];
 
-  const canEdit = user && (user.role === 'admin' || user.perfil === 'admin' || user.role === 'lider' || user.perfil === 'lider' || user.perfil === 'coordenador' || user.perfil === 'gestao' || user.perfil === 'direcao' || user.perfil === 'user');
-  const canDelete = user && (user.role === 'admin' || user.perfil === 'admin' || user.perfil === 'lider' || user.perfil === 'direcao' || user.perfil === 'user');
+function EmpreendimentoCard({ empreendimento, user, perfilAtual, isAdmin, onEdit, onDelete }) {
+  const souDono = user?.email && empreendimento.created_by === user.email;
+  const podeGerenciar = isAdmin || PERFIS_COORDENADOR_OU_ACIMA.includes(perfilAtual) || souDono;
 
-  console.log('EmpreendimentoCard - canEdit:', canEdit);
-  console.log('EmpreendimentoCard - canDelete:', canDelete);
+  const canEdit = podeGerenciar;
+  const canDelete = podeGerenciar;
 
   return (
     <motion.div
@@ -67,29 +69,31 @@ function EmpreendimentoCard({ empreendimento, user, onEdit, onDelete }) {
               {statusLabels[empreendimento.status]}
             </Badge>
           </div>
-          <div className="absolute top-3 left-3">
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 bg-white/70 hover:bg-white backdrop-blur-sm rounded-full">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {canEdit && (
-                  <DropdownMenuItem onClick={() => onEdit(empreendimento)}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Editar
-                  </DropdownMenuItem>
-                )}
-                {canDelete && (
-                  <DropdownMenuItem onClick={() => onDelete(empreendimento.id)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Excluir
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {(canEdit || canDelete) && (
+            <div className="absolute top-3 left-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 bg-white/70 hover:bg-white backdrop-blur-sm rounded-full">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => onEdit(empreendimento)}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
+                    </DropdownMenuItem>
+                  )}
+                  {canDelete && (
+                    <DropdownMenuItem onClick={() => onDelete(empreendimento.id)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
         
         <CardContent className="p-6 flex-grow flex flex-col">
