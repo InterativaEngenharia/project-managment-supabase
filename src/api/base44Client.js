@@ -6,6 +6,8 @@ import { apiPavimento } from '@/services/apiPavimento';
 import { apiSobraUsuario } from '@/services/apiSobraUsuario';
 import { apiPlanejamentoAtividade } from '@/services/apiPlanejamentoAtividade';
 import { apiPlanejamentoDocumento } from '@/services/apiPlanejamentoDocumento';
+import { createGenericApiEntity } from '@/services/genericApiEntity';
+import { apiAnalitico } from '@/services/apiAnalitico';
 
 // -----------------------------------------------------------------------
 // 1) ENTIDADES (banco de dados)
@@ -15,32 +17,22 @@ import { apiPlanejamentoDocumento } from '@/services/apiPlanejamentoDocumento';
 // código mas não apareceu nos exports de dados/schema originais — tabela
 // foi criada manualmente no Supabase.
 const ENTITY_NAMES = [
-  'AlteracaoEtapa',
-  'AtaReuniao',
-  'Atividade',
-  'AtividadeFuncao',
-  'AtividadeGenerica',
+  // "AtividadesDoProjeto", "Escopo" e "HistoricoAtividade" ficam de fora:
+  // não existem como tabela no Supabase hoje (confirmado via
+  // `prisma db pull`), então nem entityFactory funcionaria pra elas -
+  // deixadas como estavam, sem tentar migrar algo que não existe.
   'AtividadesDoProjeto',
-  'AtividadesEmpreendimento',
-  'ChecklistItem',
-  'ChecklistPlanejamento',
   'Comercial',
   'ControleOS',
-  'DataCadastro',
   'Disciplina',
   'Documento',
   'Empreendimento',
   'Escopo',
-  'Execucao',
   'HistoricoAtividade',
-  'ItemPRE',
-  'NotificacaoAtividade',
-  'OSManual',
-  'Analitico', // ⚠️ ver nota acima
 ];
-// "Usuario", "Equipe", "Pavimento", "SobraUsuario", "PlanejamentoAtividade"
-// e "PlanejamentoDocumento" foram retiradas de ENTITY_NAMES de propósito -
-// já migradas para o backend (ver src/services/api*.js). Usuario em
+// As demais entidades "simples" (sem regra de permissão própria) foram
+// retiradas de ENTITY_NAMES e migradas pro backend - ver
+// src/services/genericApiEntity.js e src/services/api*.js. "Usuario" em
 // particular não pode mais ser lida/escrita direto no Postgres com a anon
 // key (isso é o que permitia um usuário comum se autopromover editando o
 // próprio registro).
@@ -54,6 +46,20 @@ entities.Pavimento = apiPavimento;
 entities.SobraUsuario = apiSobraUsuario;
 entities.PlanejamentoAtividade = apiPlanejamentoAtividade;
 entities.PlanejamentoDocumento = apiPlanejamentoDocumento;
+entities.AlteracaoEtapa = createGenericApiEntity('alteracoes-etapa');
+entities.AtaReuniao = createGenericApiEntity('atas-reuniao');
+entities.Atividade = createGenericApiEntity('atividades', 'Atividade');
+entities.AtividadeFuncao = createGenericApiEntity('atividades-funcao');
+entities.AtividadeGenerica = createGenericApiEntity('atividades-genericas');
+entities.AtividadesEmpreendimento = createGenericApiEntity('atividades-empreendimento');
+entities.ChecklistItem = createGenericApiEntity('checklist-itens');
+entities.ChecklistPlanejamento = createGenericApiEntity('checklist-planejamentos');
+entities.DataCadastro = createGenericApiEntity('datas-cadastro');
+entities.Execucao = createGenericApiEntity('execucoes');
+entities.ItemPRE = createGenericApiEntity('itens-pre');
+entities.NotificacaoAtividade = createGenericApiEntity('notificacoes-atividade');
+entities.OSManual = createGenericApiEntity('os-manuais');
+entities.Analitico = apiAnalitico;
 
 // -----------------------------------------------------------------------
 // 2) AUTENTICAÇÃO (substitui base44.auth)

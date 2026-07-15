@@ -1,18 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
-
-function whereParaQueryString(where = {}) {
-  const params = new URLSearchParams();
-  for (const [campo, valor] of Object.entries(where)) {
-    if (valor && typeof valor === 'object' && '$in' in valor) {
-      params.set(`${campo}_in`, valor.$in.join(','));
-    } else if (valor && typeof valor === 'object' && '$ne' in valor) {
-      params.set(`${campo}_ne`, valor.$ne);
-    } else if (valor !== undefined && valor !== null) {
-      params.set(campo, valor);
-    }
-  }
-  return params.toString();
-}
+import { whereParaQueryString } from '@/lib/filterQuery';
 
 /**
  * Entidade PlanejamentoDocumento com a mesma "forma" que createEntity()

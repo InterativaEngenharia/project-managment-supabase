@@ -85,6 +85,8 @@ import { pavimentoRoutes } from './modules/pavimento/pavimento.routes';
 import { sobraUsuarioRoutes } from './modules/sobrausuario/sobrausuario.routes';
 import { planejamentoAtividadeRoutes } from './modules/planejamentoatividade/planejamentoatividade.routes';
 import { planejamentoDocumentoRoutes } from './modules/planejamentodocumento/planejamentodocumento.routes';
+import { genericRoutes } from './modules/generic/generic.routes';
+import { analiticoRoutes } from './modules/analitico/analitico.routes';
 fastify.register(disciplinasRoutes, { prefix: '/api' });
 fastify.register(usuariosRoutes, { prefix: '/api' });
 fastify.register(comercialRoutes, { prefix: '/api' });
@@ -96,5 +98,7 @@ fastify.register(pavimentoRoutes, { prefix: '/api' });
 fastify.register(sobraUsuarioRoutes, { prefix: '/api' });
 fastify.register(planejamentoAtividadeRoutes, { prefix: '/api' });
 fastify.register(planejamentoDocumentoRoutes, { prefix: '/api' });
+fastify.register(genericRoutes, { prefix: '/api' });
+fastify.register(analiticoRoutes, { prefix: '/api' });
 
 export default fastify;
