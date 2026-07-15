@@ -32,6 +32,16 @@ export async function errorHandler(
     });
   }
 
+  // Outros erros de requisição malformada que o próprio Fastify já
+  // classifica como 4xx antes de chegar aqui (ex: JSON inválido no corpo,
+  // FST_ERR_CTP_INVALID_JSON_BODY) - sem isso, caíam todos no 500 genérico
+  // abaixo, escondendo um erro de cliente como se fosse erro do servidor.
+  if (typeof error.statusCode === 'number' && error.statusCode >= 400 && error.statusCode < 500) {
+    return reply.status(error.statusCode).send({
+      error: error.message || 'Requisição inválida'
+    });
+  }
+
   // Erro genérico
   return reply.status(500).send({
     error: 'Erro interno do servidor'
