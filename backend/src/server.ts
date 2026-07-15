@@ -9,7 +9,9 @@ const start = async () => {
     });
 
     console.log(`🚀 Server running on http://localhost:${config.port}`);
-    console.log(`📚 Documentation available at http://localhost:${config.port}/docs`);
+    if (!config.isProduction) {
+      console.log(`📚 Documentation available at http://localhost:${config.port}/docs`);
+    }
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
