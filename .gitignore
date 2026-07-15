@@ -36,3 +36,8 @@ dist-ssr
 *.sql
 *.dump
 *.backup
+
+# Cache local do Supabase CLI - expõe project ref, org id, e-mail da conta e
+# versões exatas do GoTrue/PostgREST/Storage em uso, nada disso deveria ir
+# pro repo.
+supabase/.temp/
