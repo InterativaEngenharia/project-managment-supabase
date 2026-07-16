@@ -3,8 +3,8 @@ import { prisma } from '../../config';
 import { CreateComercialInput, UpdateComercialInput } from './comercial.schema';
 
 export const comercialService = {
-  async list() {
-    return prisma.comercial.findMany({ orderBy: { created_date: 'desc' } });
+  async list(where: Record<string, unknown> = {}, limit?: number) {
+    return prisma.comercial.findMany({ where, orderBy: { created_date: 'desc' }, take: limit });
   },
 
   async getById(id: string) {

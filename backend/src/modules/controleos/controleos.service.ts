@@ -3,8 +3,8 @@ import { prisma } from '../../config';
 import { CreateControleOSInput, UpdateControleOSInput } from './controleos.schema';
 
 export const controleOSService = {
-  async list() {
-    return prisma.controleOS.findMany({ orderBy: { created_date: 'desc' } });
+  async list(where: Record<string, unknown> = {}, limit?: number) {
+    return prisma.controleOS.findMany({ where, orderBy: { created_date: 'desc' }, take: limit });
   },
 
   async getById(id: string) {

@@ -3,8 +3,8 @@ import { prisma } from '../../config';
 import { CreateEmpreendimentoInput, UpdateEmpreendimentoInput } from './empreendimento.schema';
 
 export const empreendimentoService = {
-  async list() {
-    return prisma.empreendimento.findMany({ orderBy: { created_date: 'desc' } });
+  async list(where: Record<string, unknown> = {}, limit?: number) {
+    return prisma.empreendimento.findMany({ where, orderBy: { created_date: 'desc' }, take: limit });
   },
 
   async getById(id: string) {

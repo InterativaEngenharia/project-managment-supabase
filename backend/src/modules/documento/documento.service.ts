@@ -3,8 +3,8 @@ import { prisma } from '../../config';
 import { CreateDocumentoInput, UpdateDocumentoInput } from './documento.schema';
 
 export const documentoService = {
-  async list() {
-    return prisma.documento.findMany({ orderBy: { created_date: 'desc' } });
+  async list(where: Record<string, unknown> = {}, limit?: number) {
+    return prisma.documento.findMany({ where, orderBy: { created_date: 'desc' }, take: limit });
   },
 
   async getById(id: string) {

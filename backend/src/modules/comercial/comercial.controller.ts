@@ -2,11 +2,13 @@ import { FastifyReply } from 'fastify';
 import { AuthenticatedRequest } from '../../middlewares/auth.middleware';
 import { comercialService } from './comercial.service';
 import { CreateComercialInput, UpdateComercialInput } from './comercial.schema';
+import { parseFilterQuery } from '../../shared/queryFilter';
 
 export const comercialController = {
   async list(request: AuthenticatedRequest, reply: FastifyReply) {
     try {
-      return reply.send(await comercialService.list());
+      const { where, limit } = parseFilterQuery(request.query as Record<string, string>);
+      return reply.send(await comercialService.list(where, limit));
     } catch (error) {
       console.error('Erro ao listar comercial:', error);
       return reply.status(500).send({ error: 'Erro ao listar comercial' });

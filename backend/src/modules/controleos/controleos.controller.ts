@@ -2,11 +2,13 @@ import { FastifyReply } from 'fastify';
 import { AuthenticatedRequest } from '../../middlewares/auth.middleware';
 import { controleOSService } from './controleos.service';
 import { CreateControleOSInput, UpdateControleOSInput } from './controleos.schema';
+import { parseFilterQuery } from '../../shared/queryFilter';
 
 export const controleOSController = {
   async list(request: AuthenticatedRequest, reply: FastifyReply) {
     try {
-      return reply.send(await controleOSService.list());
+      const { where, limit } = parseFilterQuery(request.query as Record<string, string>);
+      return reply.send(await controleOSService.list(where, limit));
     } catch (error) {
       console.error('Erro ao listar ControleOS:', error);
       return reply.status(500).send({ error: 'Erro ao listar ControleOS' });

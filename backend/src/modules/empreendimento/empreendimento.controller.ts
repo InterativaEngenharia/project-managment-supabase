@@ -3,11 +3,20 @@ import { AuthenticatedRequest } from '../../middlewares/auth.middleware';
 import { empreendimentoService } from './empreendimento.service';
 import { CreateEmpreendimentoInput, UpdateEmpreendimentoInput } from './empreendimento.schema';
 import { podeEditarRecurso } from '../../shared/perfis';
+import { parseFilterQuery } from '../../shared/queryFilter';
 
 export const empreendimentoController = {
+  // BUG CRÍTICO corrigido aqui: list() não aceitava nenhum filtro - sempre
+  // devolvia os 51 empreendimentos inteiros, ordenados por created_date
+  // desc. O frontend (Empreendimento.jsx) chama `.filter({id})` e confia
+  // cegamente em `emp[0]` sendo o registro certo - como o filtro nunca
+  // era aplicado, TODA página de detalhe mostrava sempre o mesmo
+  // empreendimento (o mais recente), não importa qual id estivesse na URL.
+  // Mesmo bug existia em Comercial/ControleOS/Documento.
   async list(request: AuthenticatedRequest, reply: FastifyReply) {
     try {
-      return reply.send(await empreendimentoService.list());
+      const { where, limit } = parseFilterQuery(request.query as Record<string, string>);
+      return reply.send(await empreendimentoService.list(where, limit));
     } catch (error) {
       console.error('Erro ao listar empreendimentos:', error);
       return reply.status(500).send({ error: 'Erro ao listar empreendimentos' });
