@@ -795,36 +795,35 @@ export default function CalendarioPlanejamento({ usuarios, disciplinas, onRefres
     }
     const storageKey = `calendar-activity-order-${userFilter}`;
 
-    // FIX 1: Limpar imediatamente ao trocar usuário para não exibir dados do usuário
-    // anterior enquanto o novo carregamento está em andamento.
-    setEnrichedData([]);
-    setActivityOrder({});
+    // Troca de usuário já limpa enrichedData/activityOrder antes de chamar
+    // esta função (ver useEffect de filters.user abaixo) - não limpar aqui de
+    // novo, senão toda atualização de fundo (updateKey, botão Atualizar) faz
+    // o calendário inteiro sumir e reaparecer, em vez de só trocar os dados
+    // suavemente enquanto o que já estava na tela continua visível.
     setIsCalendarLoading(true);
 
     try {
       const execFilter = userFilter !== 'all' ? { usuario: userFilter } : {};
 
+      // Antes disso, "executor secundário" era achado buscando a TABELA
+      // INTEIRA (Entity.list() sem filtro - 19k+ linhas em PlanejamentoAtividade)
+      // só pra filtrar no navegador quem tinha o e-mail em `executores`. Agora
+      // o backend já filtra isso direto no banco (executor_principal = X OU
+      // executores contém X) - ver envolve_usuario em
+      // backend/src/modules/planejamentoatividade/planejamentoatividade.service.ts.
       const fetchPlanos = async (Entity, tag) => {
         if (userFilter === 'all') return retryWithBackoff(() => Entity.list(), 3, 1500, tag);
-        const [byPrincipal, allList] = await Promise.all([
-          retryWithBackoff(() => Entity.filter({ executor_principal: userFilter }), 3, 1500, tag+'p').catch(() => []),
-          retryWithBackoff(() => Entity.list(), 3, 1500, tag+'l').catch(() => []),
-        ]);
-        const m = new Map((byPrincipal||[]).map(p=>[p.id,p]));
+        const registros = await retryWithBackoff(() => Entity.filter({ envolve_usuario: userFilter }), 3, 1500, tag);
         // FIX 3: Só incluir atividades onde o usuário é executor secundário
         // se ele realmente tem horas alocadas (horas_por_dia >= 0.05h).
         // Evita "atividades fantasma" ao trocar de usuário.
-        (allList||[])
-          .filter(p => {
-            if (!Array.isArray(p.executores) || !p.executores.includes(userFilter)) return false;
-            if (m.has(p.id)) return false;
-            if (p.horas_por_dia && typeof p.horas_por_dia === 'object') {
-              return Object.values(p.horas_por_dia).some(h => Number(h) >= 0.05);
-            }
-            return true;
-          })
-          .forEach(p => { if(!m.has(p.id)) m.set(p.id,p); });
-        return Array.from(m.values());
+        return (registros || []).filter(p => {
+          if (p.executor_principal === userFilter) return true;
+          if (p.horas_por_dia && typeof p.horas_por_dia === 'object') {
+            return Object.values(p.horas_por_dia).some(h => Number(h) >= 0.05);
+          }
+          return true;
+        });
       };
 
       const [planosAtividade, planosDocumento, execs] = await Promise.all([
@@ -1435,7 +1434,12 @@ export default function CalendarioPlanejamento({ usuarios, disciplinas, onRefres
         </div>
       );
     }
-    if (totalLoading) {
+    // Só mostra o spinner de tela cheia quando ainda não há nada pra exibir
+    // (primeira carga desse usuário). Numa atualização de fundo (troca de
+    // horas, timer, botão Atualizar) já existem dados na tela - manter o
+    // calendário visível e deixar só o botão "Atualizando..." indicar o
+    // refresh evita o "sumiço e reaparecimento" brusco.
+    if (totalLoading && enrichedData.length === 0) {
       return (
         <div className="flex justify-center items-center h-[400px]">
           <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
@@ -1522,7 +1526,9 @@ export default function CalendarioPlanejamento({ usuarios, disciplinas, onRefres
           isApoio={isApoio}
         />
         <DragDropContext onDragEnd={onDragEnd}>
-          <CardContent className="p-0 flex-1">
+          <CardContent
+            className={`p-0 flex-1 transition-opacity duration-200 ${totalLoading && enrichedData.length > 0 ? 'opacity-60' : 'opacity-100'}`}
+          >
             {renderContent()}
           </CardContent>
         </DragDropContext>

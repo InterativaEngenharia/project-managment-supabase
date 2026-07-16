@@ -12,6 +12,10 @@ export interface FiltrosPlanejamento {
   executor_principal?: string;
   executor_principal_in?: string[];
   status_ne?: string;
+  // Ver mesmo campo em planejamentoatividade.service.ts - evita o frontend
+  // precisar buscar a tabela inteira só pra achar quem está no array
+  // `executores` (JSON).
+  envolve_usuario?: string;
   limit?: number;
 }
 
@@ -23,6 +27,12 @@ function montarWhere(filtros: FiltrosPlanejamento) {
   if (filtros.executor_principal) where.executor_principal = filtros.executor_principal;
   if (filtros.executor_principal_in) where.executor_principal = { in: filtros.executor_principal_in };
   if (filtros.status_ne) where.status = { not: filtros.status_ne };
+  if (filtros.envolve_usuario) {
+    where.OR = [
+      { executor_principal: filtros.envolve_usuario },
+      { executores: { array_contains: filtros.envolve_usuario } }
+    ];
+  }
   return where;
 }
 

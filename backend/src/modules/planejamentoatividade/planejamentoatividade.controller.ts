@@ -25,6 +25,7 @@ export const planejamentoAtividadeController = {
         executor_principal: query.executor_principal,
         executor_principal_in: query.executor_principal_in?.split(','),
         status_ne: query.status_ne,
+        envolve_usuario: query.envolve_usuario,
         limit: query.limit ? Number(query.limit) : undefined
       });
       const visiveis = todos.filter((registro) =>
