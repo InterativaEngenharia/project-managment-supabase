@@ -75,7 +75,7 @@ export default function ExecucoesPorUsuario() {
                     };
                 }
 
-                acc[groupKey].tempoTotalAgregado += exec.tempo_total || 0;
+                acc[groupKey].tempoTotalAgregado += Number(exec.tempo_total) || 0;
                 acc[groupKey].execucoes.push(exec);
                 
                 if (!acc[groupKey].ultimaExecucao || new Date(exec.inicio) > new Date(acc[groupKey].ultimaExecucao.inicio)) {
@@ -173,8 +173,9 @@ export default function ExecucoesPorUsuario() {
     };
 
     const formatTempo = (tempo) => {
-        if (tempo === null || typeof tempo === 'undefined') return "0.0h";
-        return `${tempo.toFixed(1)}h`;
+        const num = Number(tempo);
+        if (tempo === null || typeof tempo === 'undefined' || Number.isNaN(num)) return "0.0h";
+        return `${num.toFixed(1)}h`;
     };
 
     const formatData = (dataString) => {
